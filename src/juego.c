@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include "../extra/ansi.h"
+#include "../extra/engine.h"
 #include "lista.h"
 #include "juego.h"
 #include "utils.h"
@@ -54,7 +56,7 @@ void juego_agregar_pokemon(juego_t* juego, pokemon_t *pokemon){
     lista_agregar_al_final(casillero_actual->elementos, pokemon);
 }
 
-void mover_jugador(juego_t* juego) {
+void mover_jugador(int entrada, juego_t* juego) {
     if(!juego || !juego->tablero || !juego->jugador)
         return;
     jugador_t* jugador = juego->jugador;
@@ -65,14 +67,17 @@ void mover_jugador(juego_t* juego) {
     }
 
     casillero_t* casillero_actual = &juego->tablero[jugador->y][jugador->x];
+    procesar_entrada(entrada, juego);
+
     void *elemento_quitado = NULL;
     lista_quitar_elemento(casillero_actual->elementos, 0, &elemento_quitado);
 
-    //la posición del jugador fye actualizada por procesar_entrad
     casillero_t* casillero_nuevo = &juego->tablero[jugador->y][jugador->x];
 
-    //lo meto en el nuevo casillero
-    lista_agregar_al_final(casillero_nuevo->elementos, jugador);
+    //lo meto en el nuevo casillero al inicio, cosa de que si el tamaño
+    //de la lista es mayor a 1, se que se atrapa un pokemon
+    lista_agregar_elemento(casillero_nuevo->elementos, 0, jugador);
+    jugador->iteraciones++;
 }
 
 void mover_pokemones(juego_t *juego) {
@@ -153,27 +158,49 @@ void mover_pokemones(juego_t *juego) {
 
 
 void dibujar_tablero(juego_t *juego) {
+    borrar_pantalla(); // Limpia la terminal antes de dibujar
     for (size_t i = 0; i < juego->alto; i++) {
         for (size_t j = 0; j < juego->ancho; j++) {
             casillero_t *casillero = &juego->tablero[i][j];
-            printf("Casillero (%zu, %zu): ", i, j);
-            // Imprimir elementos en el casillero (jugador y pokémons)
+
+            // Verificar qué elementos hay en el casillero
+            bool hay_jugador = false;
+            size_t cantidad_pokemones = 0;
+            char letra_pokemon = ' ';
+
             Lista_iterador *iter = lista_iterador_crear(casillero->elementos);
             while (lista_iterador_hay_siguiente(iter)) {
                 void *elemento = lista_iterador_obtener_elemento_actual(iter);
                 if (elemento == (void *)juego->jugador) {
-                    printf("Jugador ");
+                    hay_jugador = true;
                 } else {
                     pokemon_t *pokemon = (pokemon_t *)elemento;
-                    printf("Pokemon (%ld) ", pokemon->puntos);
+                    letra_pokemon = pokemon->nombre[0]; // Primera letra del Pokémon
+                    cantidad_pokemones++;
                 }
                 lista_iterador_avanzar(iter);
             }
             lista_iterador_destruir(iter);
-            printf("\n");
+
+            // Determinar qué imprimir en el casillero
+            if (hay_jugador) {
+                printf(ANSI_COLOR_WHITE ANSI_COLOR_BOLD "@" ANSI_COLOR_RESET); // Jugador
+            } else if (cantidad_pokemones > 0) {
+                printf(ANSI_COLOR_BOLD "%s" ANSI_COLOR_RESET, letra_pokemon); // Pokémon
+            } else {
+                printf(" "); // Casillero vacío
+            }
         }
+        printf("\n");
     }
+
+    // Imprimir estadísticas al pie del tablero
+    printf(ANSI_COLOR_YELLOW "Tiempo: %zu  Puntaje: %ld\n" ANSI_COLOR_RESET,
+           juego->segundos, juego->jugador->puntos_obtenidos);
+    printf(ANSI_COLOR_CYAN "Último capturado: %s\n" ANSI_COLOR_RESET, 
+           juego->jugador->ultimo_poke_capturado ? juego->jugador->ultimo_poke_capturado : "Ninguno");
 }
+
 
 void mostrar_estadisticas(juego_t *juego) {
     printf("Puntaje: %ld\n", juego->jugador->puntos_obtenidos);
@@ -207,19 +234,6 @@ void juego_destruir(juego_t* juego) {
     for (size_t i = 0; i < juego->alto; i++) {
         for (size_t j = 0; j < juego->ancho; j++) {
             casillero_t *casillero = &juego->tablero[i][j];
-            
-            // // Liberar todos los elementos de la lista
-            // while (lista_cantidad_elementos(casillero->elementos) > 0) {
-            //     void *elemento = NULL;
-            //     lista_quitar_elemento(casillero->elementos, 0, &elemento);
-
-            //     // Liberar el elemento si corresponde
-            //     if (elemento && elemento != (void *)juego->jugador) {
-            //         free(elemento); // Por ejemplo, pokémones asignados dinámicamente
-            //     }
-            // }
-
-            // Liberar la lista del casillero
             lista_destruir(casillero->elementos);
         }
 
@@ -232,4 +246,31 @@ void juego_destruir(juego_t* juego) {
 
     // Liberar la estructura del juego
     free(juego);
+}
+
+
+void procesar_entrada(int entrada, struct juego* juego){
+	struct jugador *jugador = juego->jugador;
+	if (entrada == TECLA_DERECHA)
+		jugador->x++;
+	else if (entrada == TECLA_IZQUIERDA)
+		jugador->x--;
+	else if (entrada == TECLA_ARRIBA)
+		jugador->y--;
+	else if (entrada == TECLA_ABAJO)
+		jugador->y++;
+
+	jugador->x = min(ANCHO_TABLERO, max(0, jugador->x));
+	jugador->y = min(ALTO_TABLERO, max(0, jugador->y));
+}
+
+void dibujar_cabecera(struct juego* juego){
+	printf("Utilizar " ANSI_COLOR_CYAN ANSI_COLOR_BOLD
+	       "⬆⬇⬅➡" ANSI_COLOR_RESET " para moverse\n");
+
+	printf("Presionar " ANSI_COLOR_RED ANSI_COLOR_BOLD "Q" ANSI_COLOR_RESET
+	       " para salir\n");
+
+	printf("Iteraciones: %ld Tiempo: %ld\n", juego->jugador->iteraciones,
+	       juego->jugador->iteraciones / 5);
 }

@@ -24,6 +24,6 @@ void menu_mostrar(menu_t* menu);
 void menu_ejecutar_opcion(menu_t* menu, char* letra);
 
 // Destruye el menú y libera toda la memoria asociada.
-void menu_destruir(menu_t* menu,void (*destructor)(void *));
+void menu_destruir_todo(menu_t* menu);
 
 #endif  // MENU_H

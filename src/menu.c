@@ -1,3 +1,4 @@
+#include "utils.h"
 #include "menu.h"
 #include "../extra/ansi.h"
 #include <stdio.h>
@@ -15,14 +16,12 @@
  * Un puntero al contexto (si es necesario).
  */
 
-char *copiar(const char *s)
-{
-	size_t len = strlen(s) + 1;
-	char *copia = malloc(len);
-	if (copia) {
-		memcpy(copia, s, len);
-	}
-	return copia;
+void destruir_accion(void *accion_void){
+    accion_t *accion = (accion_t *)accion_void;
+    if(!accion)
+        return;
+    free(accion->descripcion); //libero la descripcion q reserve memoria
+    free(accion);
 }
 
 //accion_t
@@ -92,14 +91,6 @@ void menu_ejecutar_opcion(menu_t* menu, char* letra) {
     accion->funcion(accion->contexto);
 }
 
-void menu_destruir(menu_t* menu,void (*destructor)(void *)) {
-    if (!menu)
-        return;
-
-    hash_destruir_todo((hash_t*)menu, destructor);
+void menu_destruir_todo(menu_t* menu) {
+    hash_destruir_todo((hash_t*)menu, destruir_accion);
 }
-
-/*
-srand parametro rand y lo casteo a unsigned int
-
-*/

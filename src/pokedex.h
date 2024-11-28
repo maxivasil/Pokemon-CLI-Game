@@ -18,14 +18,14 @@ typedef struct pokemon {
 }pokemon_t;
 
 /**
- * Crea una pokedex_t con un comparador.
+ * Crea una pokedex_t.
  */
-pokedex_t *pokedex_crear(int (*comparador)(void *, void *));
+pokedex_t *pokedex_crear();
 
 /**
  * Destruye la pokedex aplicando el destructor a los pokemones del usuario.
  */
-void pokedex_destruir_todo(pokedex_t *pokedex, void (*destructor)(void *));
+void pokedex_destruir_todo(pokedex_t *pokedex);
 
 /**
  * Inserta el pokemon. Devuelve true si pudo o false si no pudo.
@@ -60,6 +60,8 @@ size_t pokedex_cantidad(pokedex_t *pokedex);
  * Devuelve la cantidad de veces que fue invocada la función f.
  */
 size_t pokedex_iterar(pokedex_t *pokedex, bool (*f)(void *, void *), void *ctx);
+
+void pokedex_imprimir(void* ctx);
 
 /**
  * Rellena el vector de punteros con los pokemones de la pokedex siguiendo un orden
