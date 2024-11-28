@@ -73,7 +73,7 @@ bool imprimir_opcion_menu(char* letra, void* valor, void* ctx) {
 }
 
 void menu_mostrar(menu_t* menu) {
-    printf(ANSI_COLOR_CYAN ANSI_COLOR_BOLD  "Opciones disponibles:\n" ANSI_COLOR_RESET);
+    printf("\n" ANSI_COLOR_CYAN ANSI_COLOR_BOLD  "Opciones disponibles:\n" ANSI_COLOR_RESET);
     hash_iterar((hash_t*)menu, imprimir_opcion_menu, NULL);
 }
 

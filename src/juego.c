@@ -76,77 +76,80 @@ void mover_jugador(juego_t* juego) {
 }
 
 void mover_pokemones(juego_t *juego) {
+    if (!juego || !juego->tablero)
+        return;
+
     for (size_t i = 0; i < juego->alto; i++) {
         for (size_t j = 0; j < juego->ancho; j++) {
             casillero_t *casillero = &juego->tablero[i][j];
-            Lista_iterador *iter = lista_iterador_crear(casillero->elementos);
-            if (!iter) continue;
+            if (!casillero->elementos)
+                continue;
 
-            while (lista_iterador_hay_siguiente(iter)) {
-                pokemon_t *pokemon = (pokemon_t *)lista_iterador_obtener_elemento_actual(iter);
-                size_t patron_len = strlen(pokemon->patron_movimiento);  // longitud del patrón
-                size_t iteracion = pokemon->iteracion;  // ves q muevo al pokemon para saber q patro toda
+            size_t cantidad_pokemones = lista_cantidad_elementos(casillero->elementos);
+            for (size_t k = 0; k < cantidad_pokemones; k++) {
+                void *poke;
+                lista_obtener_elemento(casillero->elementos, k, &poke);
+                pokemon_t* pokemon = (pokemon_t*)poke;
+                if (!pokemon || !pokemon->patron_movimiento)
+                    continue;
 
-                //muevo al pokemon en base al patron de mov
-                char movimiento = pokemon->patron_movimiento[iteracion % patron_len]; // hago esto para q nunca se termine
+                size_t patron_len = strlen(pokemon->patron_movimiento);
+                if (patron_len == 0)
+                    continue;
+
+                size_t iteracion = pokemon->iteracion;
+                char movimiento = pokemon->patron_movimiento[iteracion % patron_len];
+
+                // Calcular la nueva posición del Pokémon
+                size_t nueva_x = pokemon->x;
+                size_t nueva_y = pokemon->y;
 
                 switch (movimiento) {
-                    case 'N':  // hacia arriba
-                        pokemon->y--;
+                    case 'N': nueva_y--; break;
+                    case 'S': nueva_y++; break;
+                    case 'E': nueva_x++; break;
+                    case 'O': nueva_x--; break;
+                    case 'J':
+                        nueva_x = juego->jugador->x;
+                        nueva_y = juego->jugador->y;
                         break;
-                    case 'S':  // hacia abajo
-                        pokemon->y++;
+                    case 'I':
+                        nueva_x = juego->jugador->x - (pokemon->x - juego->jugador->x);
+                        nueva_y = juego->jugador->y - (pokemon->y - juego->jugador->y);
                         break;
-                    case 'E':  // hacia la der
-                        pokemon->x++;
+                    case 'R': {
+                        int direccion = rand() % 4;
+                        if (direccion == 0) nueva_y--;
+                        else if (direccion == 1) nueva_y++;
+                        else if (direccion == 2) nueva_x--;
+                        else nueva_x++;
                         break;
-                    case 'O':  // hacia la izq
-                        pokemon->x--;
-                        break;
-                    case 'J':  // Movimiento del jugador
-                        // el movimiento del pokemon sigue el del jugador
-                        pokemon->x = juego->jugador->x;
-                        pokemon->y = juego->jugador->y;
-                        break;
-                    case 'I':  // Movimiento del jugador invertido
-                        // el movimiento del pokemon va en sentido opuesto al del jugador
-                        pokemon->x = juego->jugador->x - (pokemon->x - juego->jugador->x);
-                        pokemon->y = juego->jugador->y - (pokemon->y - juego->jugador->y);
-                        break;
-                    case 'R':  //al azar:
-                        {
-                            //arriba, abajo, izquierda, derecha -> 4 opciones 0,1,2,3
-                            int direccion = rand() % 4;
-                            switch (direccion) {
-                                case 0:  // arriba
-                                    pokemon->y--;
-                                    break;
-                                case 1:  // abajo
-                                    pokemon->y++;
-                                    break;
-                                case 2:  // izq
-                                    pokemon->x--;
-                                    break;
-                                case 3:  // der
-                                    pokemon->x++;
-                                    break;
-                            }
-                        }
-                        break;
+                    }
                 }
 
-                // limitar los movimientos al tablero
-                pokemon->x = min(juego->ancho - 1, max(0, pokemon->x));
-                pokemon->y = min(juego->alto - 1, max(0, pokemon->y));
+                // Asegurarse de que la posición esté dentro de los límites
+                nueva_x = min(juego->ancho - 1, max(0, nueva_x));
+                nueva_y = min(juego->alto - 1, max(0, nueva_y));
 
-                // incrementar la iteración del pokemon
+                // Si cambió de posición, mover el Pokémon
+                if (nueva_x != pokemon->x || nueva_y != pokemon->y) {
+                    casillero_t *nuevo_casillero = &juego->tablero[nueva_y][nueva_x];
+
+                    lista_quitar_elemento(casillero->elementos, k, NULL);
+                    lista_agregar_al_final(nuevo_casillero->elementos, pokemon);
+
+                    pokemon->x = nueva_x;
+                    pokemon->y = nueva_y;
+                }
+
+                // Incrementar la iteración
                 pokemon->iteracion++;
             }
-
-            lista_iterador_destruir(iter);
         }
     }
 }
+
+
 
 
 void dibujar_tablero(juego_t *juego) {

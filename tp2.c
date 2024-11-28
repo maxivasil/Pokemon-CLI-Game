@@ -18,10 +18,15 @@
 
 typedef struct archivo_csv Archivo;
 
-typedef struct contexto {
+typedef struct contexto_iterar {
     pokedex_t* pokedex;                     // la pokedex a iterar
     bool (*f_impresion)(void*, void*); // función para imprimir pokémon
 } contexto_iterar_t;
+
+typedef struct contexto_jugar {
+	juego_t* juego;
+    int (*f_logica)(int entrada, void* datos);
+} contexto_jugar_t;
 
 bool imprimir_pokemon(void *elemento, void *ctx)
 {
@@ -147,6 +152,15 @@ int logica(int entrada, void *datos) {
     return entrada == 'q' || entrada == 'Q' || juego->segundos <= 0;
 }
 
+void jugar(void *logica)
+{
+	contexto_jugar_t* ctx = (contexto_jugar_t*)logica;
+    ctx->juego->jugador->x = (size_t)rand() % ANCHO_TABLERO; 
+	ctx->juego->jugador->y = (size_t)rand() % ALTO_TABLERO; 
+	ctx->juego->segundos = 0;
+    game_loop(ctx->f_logica, ctx->juego);
+}
+
 void jugar_con_semilla(void* nada){
 	return;
 }
@@ -217,10 +231,11 @@ int obtener_opcion()
     return opcion_elegida;
 }
 
-void liberar_todo(struct archivo_csv *archivo, menu_t *menu, void(*fm)(void*), contexto_iterar_t *contexto_iterar, pokedex_t *pokedex, void(*fp)(void*), juego_t *juego) {
+void liberar_todo(struct archivo_csv *archivo, menu_t *menu, void(*fm)(void*), contexto_iterar_t *contexto_iterar, contexto_jugar_t* contexto_jugar, pokedex_t *pokedex, void(*fp)(void*), juego_t *juego) {
 	cerrar_archivo_csv(archivo);
 	menu_destruir(menu, fm); 
 	free(contexto_iterar);
+	free(contexto_jugar);
 	pokedex_destruir_todo(pokedex, fp);
 	juego_destruir(juego);
 }
@@ -280,13 +295,16 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 	cargar_pokedex_pokemon(archivo, pokedex);
-	printf(ANSI_COLOR_WHITE ANSI_COLOR_BOLD "BIENVENID@ A POKEMON RUN\n" ANSI_COLOR_RESET);
+	printf(ANSI_COLOR_WHITE ANSI_COLOR_BOLD "\nBIENVENID@ A POKEMON RUN\n" ANSI_COLOR_RESET);
 	menu_t* menu = menu_crear();
 	if (!menu) {
         printf("Error al crear el menú.\n");
         return -1;
     }
-
+	
+	struct jugador jugador = { 0 };
+	struct juego* juego_nuevo = juego_crear(ANCHO_TABLERO, ALTO_TABLERO, SEGUNDOS_DE_JUEGO, &jugador);
+	
 	contexto_iterar_t* contexto_iterar = malloc(sizeof(contexto_iterar_t));
 	if (!contexto_iterar) {
 		//ver que poner aca
@@ -294,19 +312,19 @@ int main(int argc, char *argv[])
 	}
 	contexto_iterar->pokedex = pokedex;
 	contexto_iterar->f_impresion = imprimir_pokemon; 
+	
+	contexto_jugar_t* contexto_jugar = malloc(sizeof(contexto_jugar_t));
+	if (!contexto_jugar)
+		return -1;
+	contexto_jugar->juego = juego_nuevo;
+	contexto_jugar->f_logica = logica;
 
 	menu_agregar_opcion(menu,"P", "Mostrar pokemones",pokedex_imprimir, contexto_iterar); //meter los pokemones en un abb con inorden
-	
-	
-	menu_agregar_opcion(menu,"J", "Iniciar Juego",NULL ,NULL);
+	menu_agregar_opcion(menu,"J", "Iniciar Juego", jugar , contexto_jugar);
 	menu_agregar_opcion(menu,"S", "Iniciar Juego con semilla", jugar_con_semilla ,NULL);
 	menu_agregar_opcion(menu,"Q", "Salir", NULL ,NULL);
 	menu_mostrar(menu);
-	
-	
-	struct jugador jugador = { 0 };
-	struct juego* juego_nuevo = juego_crear(ANCHO_TABLERO, ALTO_TABLERO, SEGUNDOS_DE_JUEGO, &jugador);
-	
+
 	pokemon_t** vector = malloc(pokedex_cantidad(pokedex) * sizeof(pokemon_t*));
 	if (!vector) 
     	return -1;
@@ -331,7 +349,7 @@ int main(int argc, char *argv[])
 		if (opcion != 'Q') {        // ejecutar solo si no se elige 'Q'
 			ejecutar_opcion(opcion, menu);  // ejecutar la opción seleccionada
 		} else {
-		liberar_todo(archivo, menu, destruir_accion, contexto_iterar, pokedex, destruir_pokemon, juego_nuevo);
+		liberar_todo(archivo, menu, destruir_accion, contexto_iterar, contexto_jugar, pokedex, destruir_pokemon, juego_nuevo);
 		return 0;
 		}
 	} while (opcion != 'Q');  // ver esto pq no esta bien. despuesde jugar una vez ya 
