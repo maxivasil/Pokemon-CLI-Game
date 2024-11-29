@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+#include "csv.h"
 
 typedef struct pokedex pokedex_t;
 typedef struct jugador jugador_t;
@@ -12,8 +13,8 @@ typedef struct pokemon {
     size_t puntos;
     char* color;
     char* patron_movimiento;
-    size_t x;  // Cambiado a size_t
-    size_t y;  // Cambiado a size_t
+    int x;  // Cambiado a size_t
+    int y;  // Cambiado a size_t
     size_t iteracion;
 }pokemon_t;
 
@@ -31,6 +32,8 @@ void pokedex_destruir_todo(pokedex_t *pokedex);
  * Inserta el pokemon. Devuelve true si pudo o false si no pudo.
  */
 bool pokedex_insertar(pokedex_t *pokedex, pokemon_t *pokemon);
+
+void pokedex_insertar_desde_archivo(struct archivo_csv* archivo, pokedex_t* pokedex);
 
 /**
  * Quita el pokemon buscado de la pokedex. Si lo encuentra y encontrado no es NULL,

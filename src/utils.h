@@ -7,21 +7,23 @@
 
 #define ANCHO_TABLERO 32
 #define ALTO_TABLERO 15
-#define SEGUNDOS_DE_JUEGO 40
+#define SEGUNDOS_DE_JUEGO 70
 #define CANTIDAD_POKEMONES_A_AGREGAR 7
 
-size_t max(size_t a, size_t b);
+int max(int a, int b);
 
-size_t min(size_t a, size_t b);
+int min(int a, int b);
 
 char *copiar(const char *s);
 
-size_t generar_posicion_random(size_t limite);
+int generar_posicion_random(int limite);
 
 bool leer_nombre(const char *str, void *ctx);
 
 bool leer_int(const char *str, void *ctx);
 
 char* obtener_color_ansi(char* color);
+
+void destruir_pokemon(void *pokemon_void);
 
 #endif // UTILS_H_

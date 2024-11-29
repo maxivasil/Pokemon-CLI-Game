@@ -11,9 +11,6 @@
 #include "src/csv.h"
 #include "src/utils.h"
 
-
-typedef struct archivo_csv Archivo;
-
 typedef struct contexto_jugar {
 	juego_t* juego;
     int (*f_logica)(int entrada, void* datos);
@@ -32,17 +29,20 @@ int logica(int entrada, void *datos) {
 
     borrar_pantalla();
 
+	juego->jugador->iteraciones++;
+	if (juego->jugador->iteraciones % 5 == 0)
+		juego->segundos--;
 	//procesar_entrada(entrada,juego);  IRIA DENTRO DE mover_jugador
 
 	dibujar_cabecera(juego);
 
-    mover_jugador(entrada, juego);
-    mover_pokemones(juego);
-
-    capturar_pokemon(juego);
+	if (entrada) {
+  		mover_jugador(entrada, juego);
+	    mover_pokemones(entrada, juego);
+	    capturar_pokemon(juego);
+	}	
 
     dibujar_tablero(juego); // Renderizar el tablero.
-    mostrar_estadisticas(juego); // Puntaje, tiempo, etc.
 
     return entrada == 'q' || entrada == 'Q' || juego->segundos <= 0;
 }
@@ -52,52 +52,12 @@ void jugar(void *logica)
 	contexto_jugar_t* ctx = (contexto_jugar_t*)logica;
     ctx->juego->jugador->x = (size_t)rand() % ANCHO_TABLERO; 
 	ctx->juego->jugador->y = (size_t)rand() % ALTO_TABLERO; 
-	ctx->juego->segundos = 0;
+	ctx->juego->segundos = SEGUNDOS_DE_JUEGO;
     game_loop(ctx->f_logica, ctx->juego);
 }
 
 void jugar_con_semilla(void* nada){
 	return;
-}
-
-
-void cargar_pokedex_pokemon(Archivo *archivo, pokedex_t* pokedex)
-{
-	bool (*funciones[])(const char *, void *) = { leer_nombre,
-						      leer_int, leer_nombre, leer_nombre};
-	char *nombre = NULL;
-	size_t puntos = 0;
-	char *color= NULL;
-	char *patron_mov = NULL;
-
-	void *punteros[] = { &nombre, &puntos, &color, &patron_mov};
-
-	while (leer_linea_csv(archivo, 5, funciones, punteros) > 0) {
-		pokemon_t *pokemon_leido = malloc(sizeof(struct pokemon));
-		if (!pokemon_leido) {
-			free(nombre); 
-            free(color);  //VER SI ESTO HACE FALTA 
-            free(patron_mov);
-			break;
-		}
-
-		pokemon_leido->nombre = nombre;
-		pokemon_leido->puntos = (size_t)puntos;
-
-		if (patron_mov) {
-            size_t len = strlen(patron_mov);
-            if (len > 0 && patron_mov[len - 1] == '\n') {
-                patron_mov[len - 1] = '\0'; // saco el '\n'
-            }
-        }
-        pokemon_leido->color = obtener_color_ansi(color);
-		free(color);
-
-		pokemon_leido->patron_movimiento = patron_mov;
-		pokemon_leido->x = generar_posicion_random(ANCHO_TABLERO);
-		pokemon_leido->y = generar_posicion_random(ALTO_TABLERO);
-		pokedex_insertar(pokedex, pokemon_leido);
-	}
 }
 
 int obtener_opcion()
@@ -141,7 +101,7 @@ int main(int argc, char *argv[])
 	}
 	srand((unsigned int)time(NULL)); // Inicializa la semilla de aleatoriedad
 
-	Archivo *archivo = abrir_archivo_csv(argv[1], ',');
+	struct archivo_csv *archivo = abrir_archivo_csv(argv[1], ',');
 	if (!archivo){
 		printf("No se pudo abrir el archivo CSV.\n");
 		return 0;
@@ -152,7 +112,7 @@ int main(int argc, char *argv[])
 		cerrar_archivo_csv(archivo);
 		return 0;
 	}
-	cargar_pokedex_pokemon(archivo, pokedex);
+	pokedex_insertar_desde_archivo(archivo, pokedex);
 	printf(ANSI_COLOR_WHITE ANSI_COLOR_BOLD "\nBIENVENID@ A POKEMON RUN\n" ANSI_COLOR_RESET);
 	menu_t* menu = menu_crear();
 	if (!menu) {
@@ -160,12 +120,13 @@ int main(int argc, char *argv[])
         return -1;
     }
 	
-	struct jugador jugador = { 0 };
-	struct juego* juego_nuevo = juego_crear(ANCHO_TABLERO, ALTO_TABLERO, SEGUNDOS_DE_JUEGO, &jugador); 
+	struct juego* juego_nuevo = juego_crear(ANCHO_TABLERO, ALTO_TABLERO, SEGUNDOS_DE_JUEGO, '@'); 
 	
 	contexto_jugar_t* contexto_jugar = malloc(sizeof(contexto_jugar_t));
-	if (!contexto_jugar)
+	if (!contexto_jugar) {
+		liberar_todo(archivo, menu, NULL, pokedex, juego_nuevo);
 		return -1;
+	}
 	contexto_jugar->juego = juego_nuevo;
 	contexto_jugar->f_logica = logica;
 
@@ -201,8 +162,7 @@ int main(int argc, char *argv[])
 		return 0;
 		}
 	} while (opcion != 'Q');  // ver esto pq no esta bien. despuesde jugar una vez ya 
-	
-	game_loop(logica, &juego_nuevo); //ir en jugar
+
 	mostrar_cursor();
 
 	return 0;

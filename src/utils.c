@@ -1,15 +1,16 @@
 #include "utils.h"
+#include "pokedex.h"
 #include "../extra/ansi.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 
-size_t max(size_t a, size_t b) {
+int max(int a, int b) {
     return a > b ? a : b;
 }
 
-size_t min(size_t a, size_t b) {
+int min(int a, int b) {
     return a < b ? a : b;
 }
 
@@ -23,9 +24,9 @@ char *copiar(const char *s)
 	return copia;
 }
 
-size_t generar_posicion_random(size_t limite)
+int generar_posicion_random(int limite)
 {
-    return (size_t)rand() % limite;
+    return (int)rand() % limite;
 }
 
 bool leer_nombre(const char *str, void *ctx)
@@ -70,4 +71,13 @@ char* obtener_color_ansi(char* color) {
             break;
     }
     return ANSI_COLOR_RESET; //si no se encuentra el color
+}
+
+void destruir_pokemon(void *pokemon_void) {
+    if (!pokemon_void) return;
+
+    pokemon_t *pokemon = (pokemon_t *)pokemon_void;
+    free(pokemon->nombre);
+    free(pokemon->patron_movimiento);
+    free(pokemon);
 }

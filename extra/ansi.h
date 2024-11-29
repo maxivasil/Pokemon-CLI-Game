@@ -23,7 +23,7 @@
 
 #define ANSI_CLEAR_SCREEN "\x1b[2J"
 #define ANSI_CURSOR_HOME "\x1b[H"
-#define ANSI_RESET_SCREEN "\x1b[2J\x1b[H"
+#define ANSI_RESET_SCREEN "\033c"
 #define ANSI_HIDE_CURSOR "\x1b[?25l"
 #define ANSI_SHOW_CURSOR "\x1b[?25h"
 

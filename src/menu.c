@@ -16,15 +16,15 @@
  * Un puntero al contexto (si es necesario).
  */
 
-void destruir_accion(void *accion_void){
-    accion_t *accion = (accion_t *)accion_void;
-    if(!accion)
+void destruir_opcion(void *opcion_void){
+    opcion_t *opcion = (opcion_t *)opcion_void;
+    if(!opcion)
         return;
-    free(accion->descripcion); //libero la descripcion q reserve memoria
-    free(accion);
+    free(opcion->descripcion); //libero la descripcion q reserve memoria
+    free(opcion);
 }
 
-//accion_t
+//opcion_t
 
 menu_t* menu_crear() {
     return (menu_t*)hash_crear(4); // creo el hash con capacidad 4, pues voy a tener 4 opciones
@@ -34,39 +34,39 @@ size_t menu_cantidad(menu_t* menu) {
    return hash_cantidad((hash_t*)menu);
 }
 
-bool menu_agregar_opcion(menu_t* menu, char* letra, const char* descripcion, void (*accion)(void*), void* contexto) {
-    accion_t* nueva_accion = malloc(sizeof(accion_t)); //me creo el struct de la nueva accion a realizar
-    if (!nueva_accion)
+bool menu_agregar_opcion(menu_t* menu, char* letra, const char* descripcion, void (*opcion)(void*), void* contexto) {
+    opcion_t* nueva_opcion = malloc(sizeof(opcion_t)); //me creo el struct de la nueva opcion a realizar
+    if (!nueva_opcion)
         return false;
 
-    nueva_accion->descripcion = copiar(descripcion); 
-    if (!nueva_accion->descripcion) { // Validación adicional
-        free(nueva_accion);
+    nueva_opcion->descripcion = copiar(descripcion); 
+    if (!nueva_opcion->descripcion) { // Validación adicional
+        free(nueva_opcion);
         return false;
     }
 
-    nueva_accion->funcion = accion;
-    nueva_accion->contexto = contexto;
-    accion_t* accion_anterior = NULL;
-    if (!hash_insertar((hash_t*)menu, letra, nueva_accion, (void**)&accion_anterior)) {
-        free(nueva_accion->descripcion); // ver si esto esta bien !!
-        free(nueva_accion);
+    nueva_opcion->funcion = opcion;
+    nueva_opcion->contexto = contexto;
+    opcion_t* opcion_anterior = NULL;
+    if (!hash_insertar((hash_t*)menu, letra, nueva_opcion, (void**)&opcion_anterior)) {
+        free(nueva_opcion->descripcion); // ver si esto esta bien !!
+        free(nueva_opcion);
         return false;
     }
-    if (accion_anterior){ //si habia una antes
-        free(accion_anterior->descripcion);
-        free(accion_anterior);
+    if (opcion_anterior){ //si habia una antes
+        free(opcion_anterior->descripcion);
+        free(opcion_anterior);
     }
     return true;
 }
 
 // Función de iteración para imprimir las opciones del menú
 bool imprimir_opcion_menu(char* letra, void* valor, void* ctx) {
-    accion_t* accion_a_imprimir = (accion_t*)valor;
+    opcion_t* opcion_a_imprimir = (opcion_t*)valor;
 
     // Imprimir la letra con un color y la descripción con otro
     printf(ANSI_COLOR_MAGENTA ANSI_COLOR_BOLD "(%s) " ANSI_COLOR_RESET, letra);
-    printf(ANSI_COLOR_WHITE "%s\n" ANSI_COLOR_RESET, accion_a_imprimir->descripcion);
+    printf(ANSI_COLOR_WHITE "%s\n" ANSI_COLOR_RESET, opcion_a_imprimir->descripcion);
 
     return true; // sigo iterando
 }
@@ -81,16 +81,16 @@ void menu_ejecutar_opcion(menu_t* menu, char* letra) {
     if (!menu || !letra)
         return;
 
-    accion_t* accion = (accion_t*)hash_buscar((hash_t*)menu, letra);
-    if (!accion) {
+    opcion_t* opcion = (opcion_t*)hash_buscar((hash_t*)menu, letra);
+    if (!opcion) {
         printf("Opción inválida: %s\n", letra);
         return;
     }
-    if (!accion->funcion) 
+    if (!opcion->funcion) 
         return;
-    accion->funcion(accion->contexto);
+    opcion->funcion(opcion->contexto);
 }
 
 void menu_destruir_todo(menu_t* menu) {
-    hash_destruir_todo((hash_t*)menu, destruir_accion);
+    hash_destruir_todo((hash_t*)menu, destruir_opcion);
 }

@@ -4,11 +4,11 @@
 
 typedef struct menu menu_t;
 
-typedef struct accion {
+typedef struct opcion {
     char* descripcion;          // que hace la accion
     void (*funcion)(void*);     // la funcion q se va a ejecutar
     void* contexto;             // un contexto
-}accion_t;
+}opcion_t;
 
 // Crea un menú.
 menu_t* menu_crear();

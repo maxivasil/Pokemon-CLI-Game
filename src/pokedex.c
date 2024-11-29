@@ -1,5 +1,6 @@
 #include "pokedex.h"
 #include "abb.h"
+#include "utils.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,15 +31,6 @@ int comparar_nombre_pokemon(void *poke1, void *poke2)
 	return strcmp(pokemon1->nombre, pokemon2->nombre);
 }
 
-void destruir_pokemon(void *pokemon_void) {
-    if (!pokemon_void) return;
-
-    pokemon_t *pokemon = (pokemon_t *)pokemon_void;
-    free(pokemon->nombre);
-    free(pokemon->patron_movimiento);
-    free(pokemon);
-}
-
 void mezclar_vector(pokemon_t** vector, size_t n) {
     for (size_t i = n - 1; i > 0; i--) {
         size_t j = (size_t) rand() % (i + 1); // genera un índice aleatorio entre 0 e i
@@ -59,6 +51,45 @@ void pokedex_destruir_todo(pokedex_t* pokedex) {
 
 bool pokedex_insertar(pokedex_t* pokedex, pokemon_t* pokemon) {
     return abb_insertar((abb_t*)pokedex, pokemon);
+}
+
+void pokedex_insertar_desde_archivo(struct archivo_csv* archivo, pokedex_t* pokedex) {
+    	bool (*funciones[])(const char *, void *) = { leer_nombre,
+						      leer_int, leer_nombre, leer_nombre};
+	char *nombre = NULL;
+	size_t puntos = 0;
+	char *color= NULL;
+	char *patron_mov = NULL;
+
+	void *punteros[] = { &nombre, &puntos, &color, &patron_mov};
+
+	while (leer_linea_csv(archivo, 5, funciones, punteros) > 0) {
+		pokemon_t *pokemon_leido = malloc(sizeof(struct pokemon));
+		if (!pokemon_leido) {
+			free(nombre); 
+            free(color);  //VER SI ESTO HACE FALTA 
+            free(patron_mov);
+			break;
+		}
+
+		pokemon_leido->nombre = nombre;
+		pokemon_leido->puntos = (size_t)puntos;
+
+		if (patron_mov) {
+            size_t len = strlen(patron_mov);
+            if (len > 0 && patron_mov[len - 1] == '\n') {
+                patron_mov[len - 1] = '\0'; // saco el '\n'
+            }
+        }
+        pokemon_leido->color = obtener_color_ansi(color);
+		free(color);
+
+		pokemon_leido->patron_movimiento = patron_mov;
+		pokemon_leido->x = generar_posicion_random(ANCHO_TABLERO);
+		pokemon_leido->y = generar_posicion_random(ALTO_TABLERO);
+		pokemon_leido->iteracion = 0;
+		pokedex_insertar(pokedex, pokemon_leido);
+	}
 }
 
 bool pokedex_quitar(pokedex_t* pokedex, pokemon_t* buscado, pokemon_t** encontrado) {
