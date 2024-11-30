@@ -35,7 +35,7 @@ int logica(int entrada, void *datos) {
 
 	dibujar_cabecera(juego);
 	juego_mover(entrada, juego);
-    dibujar_tablero(juego); // Renderizar el tablero.
+    dibujar_tablero(juego);
 
     if(entrada == 'q' || entrada == 'Q' || juego->segundos <= 0) {
 		//mostrar_estadisticas();
@@ -57,6 +57,7 @@ bool jugar(void *logica)
 		srand((unsigned int)semilla);
 		ctx->juego->semilla = (size_t)semilla;
 	}
+	agregar_pokemon_al_tablero(ctx->juego, (size_t)CANTIDAD_POKEMONES_A_AGREGAR);
     game_loop(ctx->f_logica, ctx->juego);
 	return false;
 }
@@ -87,30 +88,36 @@ bool jugar_con_semilla(void* contexto) {
     return jugar((void*)ctx);
 }
 
-int obtener_opcion()
-{
+int solicitar_opcion(menu_t* menu) {
     int opcion_elegida;
     char opcion[20];
-    do {
-        printf("Ingrese una opción: ");
-        
-        if (fgets(opcion, sizeof(opcion), stdin) == NULL)
-            return 0;  // Fin de entrada
+    bool opcion_valida = false;
 
-        opcion_elegida = toupper(opcion[0]);
-
-        if (opcion_elegida != 'P' && opcion_elegida != 'S' && opcion_elegida != 'Q' && opcion_elegida != 'J') {
-            printf("Opción no válida, intente nuevamente.\n");
+    printf("Ingrese una opción: ");
+    while (fgets(opcion, sizeof(opcion), stdin) != NULL) {
+        // Remover el salto de línea si existe
+        size_t len = strlen(opcion);
+        if (len > 0 && opcion[len - 1] == '\n') {
+            opcion[len - 1] = '\0';
         }
 
-    } while (opcion_elegida != 'P' && opcion_elegida != 'S' && opcion_elegida != 'Q' && opcion_elegida != 'J');
+        // Tomar el primer carácter y convertirlo a mayúscula
+        opcion_elegida = toupper(opcion[0]);
+        char opcion_str[2] = {(char)opcion_elegida, '\0'};
 
-    return opcion_elegida;
+        // Verificar si la opción está en el menú
+        if (menu_contiene(menu, opcion_str)) {
+            opcion_valida = true;
+            break; // Salir del bucle si la opción es válida
+        }
+
+        printf("Opción inválida, intente nuevamente.\nIngrese una opción: ");
+    }
+
+    // Retornar la opción elegida si es válida, o 0 si hubo error en la entrada
+    return opcion_valida ? opcion_elegida : 0;
 }
 
-/*
-* Ejecuta la opcion previamente ingresada por el usuario.
-*/
 bool ejecutar_opcion(int opcion, menu_t* menu)
 {
 	// Convertir la opción de tipo 'char' a 'char*' para usarla como clave en el hash
@@ -128,8 +135,6 @@ int main(int argc, char *argv[])
 		printf("%s <archivo>\n", argv[0]);
 		return -1;
 	}
-	//srand((unsigned int)time(NULL)); // Inicializa la semilla de aleatoriedad
-
 	struct archivo_csv *archivo = abrir_archivo_csv(argv[1], ',');
 	if (!archivo){
 		printf("No se pudo abrir el archivo CSV.\n");
@@ -149,7 +154,7 @@ int main(int argc, char *argv[])
         return -1;
     }
 	
-	struct juego* juego_nuevo = juego_crear(ANCHO_TABLERO, ALTO_TABLERO, SEGUNDOS_DE_JUEGO, '@', CANTIDAD_POKEMONES_A_AGREGAR, pokedex); 
+	struct juego* juego_nuevo = juego_crear(ANCHO_TABLERO, ALTO_TABLERO, SEGUNDOS_DE_JUEGO, '@', pokedex); 
 	
 	contexto_jugar_t* contexto_jugar = malloc(sizeof(contexto_jugar_t));
 	if (!contexto_jugar) {
@@ -159,7 +164,7 @@ int main(int argc, char *argv[])
 	contexto_jugar->juego = juego_nuevo;
 	contexto_jugar->f_logica = logica;
 
-	menu_agregar_opcion(menu,"P", "Mostrar pokemones",pokedex_imprimir, (void*)pokedex); //meter los pokemones en un abb con inorden
+	menu_agregar_opcion(menu,"P", "Mostrar pokemones",pokedex_imprimir, (void*)pokedex);
 	menu_agregar_opcion(menu,"J", "Iniciar Juego", jugar , contexto_jugar);
 	menu_agregar_opcion(menu,"S", "Iniciar Juego con semilla", jugar_con_semilla ,contexto_jugar);
 	menu_agregar_opcion(menu,"Q", "Salir", NULL ,NULL);
@@ -167,7 +172,7 @@ int main(int argc, char *argv[])
 	int opcion;
 	do {
 		menu_mostrar(menu);
-		opcion = obtener_opcion();
+		opcion = solicitar_opcion(menu);
 	} while (ejecutar_opcion(opcion, menu));
 
 	liberar_todo(archivo, menu, contexto_jugar, pokedex, juego_nuevo);

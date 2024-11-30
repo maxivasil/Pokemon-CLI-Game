@@ -16,7 +16,6 @@ struct jugador {
 typedef struct juego{
     Lista* fuente_de_pokemones;
     Lista* pokemones_tablero;
-    Lista* pokemones_capturados;
     jugador_t* jugador;
     size_t cant_pokemones_tablero;
     size_t segundos;
@@ -26,7 +25,9 @@ typedef struct juego{
     int alto;
 }juego_t;
 
-juego_t* juego_crear(int ancho, int alto, size_t tiempo, char icono, size_t pokemones_participantes, pokedex_t* pokedex);
+juego_t* juego_crear(int ancho, int alto, size_t tiempo, char icono, pokedex_t* pokedex);
+
+void agregar_pokemon_al_tablero(juego_t* juego, size_t cant_pokemones_a_agregar);
 
 void juego_agregar_pokemon(juego_t* juego, pokemon_t *pokemon);
 

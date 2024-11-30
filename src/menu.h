@@ -16,7 +16,10 @@ menu_t* menu_crear();
 size_t menu_cantidad(menu_t *menu);
 
 // Agrega una opción al menú. Devuelve true si tuvo éxito, false si hubo error.
-bool menu_agregar_opcion(menu_t* menu, char* letra, const char* descripcion, bool (*accion)(void*), void* contexto);
+bool menu_agregar_opcion(menu_t* menu, char* identificador, const char* descripcion, bool (*accion)(void*), void* contexto);
+
+// Devuelve si una opción está en el menú a partir de su clave
+bool menu_contiene(menu_t* menu, char* identificador);
 
 // Muestra el menú y procesa la opción seleccionada.
 void menu_mostrar(menu_t* menu);

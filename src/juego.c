@@ -28,6 +28,7 @@ bool agregar_pokemon_a_lista(void* pokemon, void* lista) {
 }
 
 void agregar_pokemon_al_tablero(juego_t* juego, size_t cant_pokemones_a_agregar) {
+    juego->cant_pokemones_tablero = cant_pokemones_a_agregar;
     for (size_t i = 0; i < cant_pokemones_a_agregar; i++) {
         size_t indice = (size_t)rand() % lista_cantidad_elementos(juego->fuente_de_pokemones);
         pokemon_t* poke = NULL;
@@ -36,7 +37,7 @@ void agregar_pokemon_al_tablero(juego_t* juego, size_t cant_pokemones_a_agregar)
     }
 }
 
-juego_t* juego_crear(int ancho, int alto, size_t segundos, char icono_jugador, size_t cant_pokemones_tablero, pokedex_t* pokedex){
+juego_t* juego_crear(int ancho, int alto, size_t segundos, char icono_jugador, pokedex_t* pokedex){
     if(!ancho || !alto || !segundos || !pokedex)
         return NULL;
 
@@ -71,9 +72,9 @@ juego_t* juego_crear(int ancho, int alto, size_t segundos, char icono_jugador, s
     }
     
     pokedex_iterar(pokedex, agregar_pokemon_a_lista, juego->fuente_de_pokemones);
-    agregar_pokemon_al_tablero(juego, cant_pokemones_tablero);
+    // agregar_pokemon_al_tablero(juego, cant_pokemones_tablero);
     
-    juego->cant_pokemones_tablero = cant_pokemones_tablero;
+    // juego->cant_pokemones_tablero = cant_pokemones_tablero;
     juego->jugador->icono = icono_jugador;
     juego->segundos = segundos; 
     juego->ancho = ancho;
