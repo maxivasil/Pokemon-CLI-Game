@@ -29,16 +29,16 @@ int logica(int entrada, void *datos) {
 
     borrar_pantalla();
 
-	juego->jugador->iteraciones++;
-	if (juego->jugador->iteraciones % 5 == 0)
-		juego->segundos--;
+	juego->variables.iteraciones++;
+	if (juego->variables.iteraciones % 5 == 0)
+		juego->variables.segundos_restantes--;
 
-	dibujar_cabecera(juego);
+	juego_dibujar_cabecera(juego);
 	juego_mover(entrada, juego);
-    dibujar_tablero(juego);
+    juego_dibujar_tablero(juego);
 
-    if(entrada == 'q' || entrada == 'Q' || juego->segundos <= 0) {
-		//mostrar_estadisticas();
+    if(entrada == 'q' || entrada == 'Q' || juego->variables.segundos_restantes <= 0) {
+		juego_mostrar_estadisticas(juego);
 		return 1;
 	}
 	return 0;
@@ -49,7 +49,7 @@ bool jugar(void *logica)
 	contexto_jugar_t* ctx = (contexto_jugar_t*)logica;
     ctx->juego->jugador->x = 0;//rand() % ANCHO_TABLERO; 
 	ctx->juego->jugador->y = 0;//rand() % ALTO_TABLERO; 
-	ctx->juego->segundos = SEGUNDOS_DE_JUEGO;
+	ctx->juego->variables.segundos_restantes = SEGUNDOS_DE_JUEGO;
 	if(!ctx->juego->semilla) {
 		int semilla = (int)time(NULL);
 		srand((unsigned int)semilla);
@@ -57,7 +57,7 @@ bool jugar(void *logica)
 		srand((unsigned int)semilla);
 		ctx->juego->semilla = (size_t)semilla;
 	}
-	agregar_pokemon_al_tablero(ctx->juego, (size_t)CANTIDAD_POKEMONES_A_AGREGAR);
+	juego_agregar_pokemones(ctx->juego, (size_t)CANTIDAD_POKEMONES_A_AGREGAR);
     game_loop(ctx->f_logica, ctx->juego);
 	return false;
 }
@@ -95,32 +95,22 @@ int solicitar_opcion(menu_t* menu) {
 
     printf("Ingrese una opción: ");
     while (fgets(opcion, sizeof(opcion), stdin) != NULL) {
-        // Remover el salto de línea si existe
         size_t len = strlen(opcion);
-        if (len > 0 && opcion[len - 1] == '\n') {
+        if (len > 0 && opcion[len - 1] == '\n')
             opcion[len - 1] = '\0';
-        }
-
-        // Tomar el primer carácter y convertirlo a mayúscula
         opcion_elegida = toupper(opcion[0]);
         char opcion_str[2] = {(char)opcion_elegida, '\0'};
-
-        // Verificar si la opción está en el menú
         if (menu_contiene(menu, opcion_str)) {
             opcion_valida = true;
-            break; // Salir del bucle si la opción es válida
+            break;
         }
-
         printf("Opción inválida, intente nuevamente.\nIngrese una opción: ");
     }
-
-    // Retornar la opción elegida si es válida, o 0 si hubo error en la entrada
     return opcion_valida ? opcion_elegida : 0;
 }
 
 bool ejecutar_opcion(int opcion, menu_t* menu)
 {
-	// Convertir la opción de tipo 'char' a 'char*' para usarla como clave en el hash
 	char opcion_str[2] = {(char)opcion, '\0' };
 	if (!menu_ejecutar_opcion(menu, opcion_str)) {
 		return false;

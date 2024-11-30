@@ -2,49 +2,49 @@
 #define JUEGO_H_
 #include <stdio.h>
 #include "lista.h"
+#include "pila.h"
 #include "pokedex.h"
+
+typedef struct variables {
+    size_t segundos_restantes;
+    size_t cant_atrapados;
+    size_t puntos_obtenidos;
+    size_t iteraciones;
+    size_t multiplicador;
+    pokemon_t* ultimo_poke_capturado;
+    
+} variables_t;
 
 struct jugador {
 	int x;
     int y;
-	size_t iteraciones;
-    size_t puntos_obtenidos;
     char icono;
-    pokemon_t* ultimo_poke_capturado;
 };
 
 typedef struct juego{
+    jugador_t* jugador;
+    variables_t variables;
     Lista* fuente_de_pokemones;
     Lista* pokemones_tablero;
-    jugador_t* jugador;
+    Pila* pokemones_capturados;
     size_t cant_pokemones_tablero;
-    size_t segundos;
     size_t semilla;
-    size_t cant_atrapados;
     int ancho;
     int alto;
 }juego_t;
 
 juego_t* juego_crear(int ancho, int alto, size_t tiempo, char icono, pokedex_t* pokedex);
 
-void agregar_pokemon_al_tablero(juego_t* juego, size_t cant_pokemones_a_agregar);
-
-void juego_agregar_pokemon(juego_t* juego, pokemon_t *pokemon);
+void juego_agregar_pokemones(juego_t* juego, size_t cant_pokemones_a_agregar);
 
 void juego_mover(int entrada, juego_t* juego);
 
-void mover_jugador(int entrada, juego_t* juego);
-
-void mover_pokemones(int movimiento_jugador, juego_t* juego);
-
-void capturar_pokemon(juego_t* juego);
-
-void dibujar_tablero(juego_t* juego);
+void juego_dibujar_tablero(juego_t* juego);
 
 void juego_destruir(juego_t* juego);
 
-void procesar_entrada(int entrada, struct juego* juego);
+void juego_mostrar_estadisticas(juego_t* juego);
 
-void dibujar_cabecera(struct juego* juego);
+void juego_dibujar_cabecera(struct juego* juego);
 
 #endif // JUEGO_H_
