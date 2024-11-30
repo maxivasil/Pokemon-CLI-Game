@@ -35,13 +35,7 @@ int logica(int entrada, void *datos) {
 	//procesar_entrada(entrada,juego);  IRIA DENTRO DE mover_jugador
 
 	dibujar_cabecera(juego);
-
-	if (entrada) {
-  		mover_jugador(entrada, juego);
-	    mover_pokemones(entrada, juego);
-	    capturar_pokemon(juego);
-	}	
-
+	juego_mover(entrada, juego);
     dibujar_tablero(juego); // Renderizar el tablero.
 
     return entrada == 'q' || entrada == 'Q' || juego->segundos <= 0;
@@ -62,23 +56,22 @@ void jugar_con_semilla(void* nada){
 
 int obtener_opcion()
 {
-	int opcion_elegida;
+    int opcion_elegida;
+    char opcion[20];
+    do {
+        printf("Ingrese una opción: ");
+        
+        if (fgets(opcion, sizeof(opcion), stdin) == NULL)
+            return 0;  // Fin de entrada
 
-	while (true) {
-		char opcion[20];
-		printf("Ingrese una opción: ");
+        opcion_elegida = toupper(opcion[0]);
 
-		if (fgets(opcion, sizeof(opcion), stdin) == NULL)
-			return 0;
-
-		opcion_elegida = toupper(opcion[0]);
-
-		if (opcion_elegida == 'P' || opcion_elegida == 'S' || opcion_elegida== 'Q' || opcion_elegida == 'J') {
-            break;  // Opción válida, salir del bucle
-        } else {
+        if (opcion_elegida != 'P' && opcion_elegida != 'S' && opcion_elegida != 'Q' && opcion_elegida != 'J') {
             printf("Opción no válida, intente nuevamente.\n");
         }
-    }
+
+    } while (opcion_elegida != 'P' && opcion_elegida != 'S' && opcion_elegida != 'Q' && opcion_elegida != 'J');
+
     return opcion_elegida;
 }
 
@@ -95,6 +88,7 @@ void ejecutar_opcion(int opcion_a_ejecutar, menu_t* menu)
 
 int main(int argc, char *argv[])
 {
+	borrar_pantalla();
 	if (argc != 2) {
 		printf("Argumentos no validos, ingrese un archivo a 'analizar'\n");
 		return -1;
@@ -120,7 +114,7 @@ int main(int argc, char *argv[])
         return -1;
     }
 	
-	struct juego* juego_nuevo = juego_crear(ANCHO_TABLERO, ALTO_TABLERO, SEGUNDOS_DE_JUEGO, '@'); 
+	struct juego* juego_nuevo = juego_crear(ANCHO_TABLERO, ALTO_TABLERO, SEGUNDOS_DE_JUEGO, '@', CANTIDAD_POKEMONES_A_AGREGAR, pokedex); 
 	
 	contexto_jugar_t* contexto_jugar = malloc(sizeof(contexto_jugar_t));
 	if (!contexto_jugar) {
@@ -136,21 +130,6 @@ int main(int argc, char *argv[])
 	menu_agregar_opcion(menu,"Q", "Salir", NULL ,NULL);
 	menu_mostrar(menu);
 
-	pokemon_t** vector = malloc(pokedex_cantidad(pokedex) * sizeof(pokemon_t*));
-	if (!vector) 
-    	return -1;
-	size_t cantidad_pokemones = pokedex_vectorizar(pokedex, vector, pokedex_cantidad(pokedex));
-	if (cantidad_pokemones < CANTIDAD_POKEMONES_A_AGREGAR) {
-    	printf("No hay suficientes pokemones en la pokedex para jugar\n");
-    	free(vector);
-    	return -1;
-	}
-
-	for (size_t i = 0; i < CANTIDAD_POKEMONES_A_AGREGAR; i++) {
-    	juego_agregar_pokemon(juego_nuevo, vector[i]);
-	}
-	free(vector); //libero el vector q recien use. ver si hace falta q posta sea dinamico!!!!!!
-	
 	int opcion;
 	// Bucle que sigue ejecutándose hasta que se elige salir ('Q')
 	do {
