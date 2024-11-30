@@ -32,7 +32,6 @@ int logica(int entrada, void *datos) {
 	juego->jugador->iteraciones++;
 	if (juego->jugador->iteraciones % 5 == 0)
 		juego->segundos--;
-	//procesar_entrada(entrada,juego);  IRIA DENTRO DE mover_jugador
 
 	dibujar_cabecera(juego);
 	juego_mover(entrada, juego);

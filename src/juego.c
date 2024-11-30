@@ -108,8 +108,10 @@ void mover_pokemones(int movimiento_jugador, juego_t *juego) {
         return;
     size_t cantidad_pokemones = lista_cantidad_elementos(juego->pokemones_tablero);
     for (size_t k = 0; k < cantidad_pokemones; k++) {
-        pokemon_t* pokemon;
+        pokemon_t* pokemon = NULL;
         lista_obtener_elemento(juego->pokemones_tablero, k, (void**)&pokemon);
+        if (!pokemon || !pokemon->patron_movimiento)
+            continue;
         size_t patron_len = strlen(pokemon->patron_movimiento);
         if (patron_len == 0) // DUDOSO ¿Por qué sería cero?
             continue;
@@ -165,23 +167,31 @@ void mover_pokemones(int movimiento_jugador, juego_t *juego) {
 void dibujar_tablero(juego_t *juego) {
     for (size_t i = 0; i < juego->alto; i++) {
         for (size_t j = 0; j < juego->ancho; j++) {
-            bool casillero_ocupado = false;
-            size_t iterados = 0;
-            // Determinar qué imprimir en el casillero
-            while (iterados < lista_cantidad_elementos(juego->pokemones_tablero) && !casillero_ocupado) { //podria ir CANT_POKES_A_AGREGAR
-                pokemon_t* pokemon_actual = NULL;
-                lista_obtener_elemento(juego->pokemones_tablero, iterados, (void**)&pokemon_actual);
-                if (juego->jugador->x == j && juego->jugador->y == i) {
-                    printf(ANSI_COLOR_WHITE ANSI_COLOR_BOLD "%c" ANSI_COLOR_RESET, juego->jugador->icono); // Jugador
-                    casillero_ocupado = true;
-                } else if (pokemon_actual->x == j && pokemon_actual->y == i && !casillero_ocupado) {
-                    printf("%s" ANSI_COLOR_BOLD "%c" ANSI_COLOR_RESET, pokemon_actual->color,pokemon_actual->nombre[0]); // Pokémon
-                    casillero_ocupado = true;
-                    iterados++;
-                } else 
-                    iterados++;
+            bool impreso = false;
+
+            // Priorizar la impresión del jugador
+            if (juego->jugador->x == j && juego->jugador->y == i) {
+                printf(ANSI_COLOR_WHITE ANSI_COLOR_BOLD "%c" ANSI_COLOR_RESET, juego->jugador->icono);
+                impreso = true;
             }
-            printf(" ");
+
+            // Imprimir Pokémon solo si no se imprimió el jugador
+            if (!impreso) {
+                size_t cantidad_pokemones = lista_cantidad_elementos(juego->pokemones_tablero);
+                for (size_t k = 0; k < cantidad_pokemones; k++) {
+                    pokemon_t* pokemon_actual = NULL;
+                    lista_obtener_elemento(juego->pokemones_tablero, k, (void**)&pokemon_actual);
+                    if (pokemon_actual && pokemon_actual->x == j && pokemon_actual->y == i) {
+                        printf("%s" ANSI_COLOR_BOLD "%c" ANSI_COLOR_RESET, pokemon_actual->color, pokemon_actual->nombre[0]);
+                        impreso = true;
+                        break;
+                    }
+                }
+            }
+
+            // Espacio vacío si no se imprimió nada
+            if (!impreso)
+                printf(" ");
         }
         printf("\n");
     }
@@ -196,7 +206,8 @@ void dibujar_tablero(juego_t *juego) {
 void capturar_pokemon(juego_t *juego) { // devuelve la cantidad de capturados
     jugador_t* jugador = juego->jugador;
     size_t cant_capturados = 0;
-    for(int i = CANTIDAD_POKEMONES_A_AGREGAR - 1; i >= 0; i--){
+    int cantidad_pokemones = (int)lista_cantidad_elementos(juego->pokemones_tablero);
+    for(int i = cantidad_pokemones - 1; i >= 0; i--){
         pokemon_t *pokemon_actual = NULL;
         lista_obtener_elemento(juego->pokemones_tablero, (size_t)i, (void**)&pokemon_actual);
         if (pokemon_actual) {
@@ -205,6 +216,7 @@ void capturar_pokemon(juego_t *juego) { // devuelve la cantidad de capturados
                 lista_agregar_al_final(juego->pokemones_capturados, (void*)pokemon_actual);
                 cant_capturados++;
                 jugador->puntos_obtenidos += pokemon_actual->puntos;
+                jugador->ultimo_poke_capturado = pokemon_actual->nombre;
             }        
         }
     }
@@ -224,7 +236,9 @@ void juego_destruir(juego_t* juego) {
 
 
 void procesar_entrada(int entrada, struct juego* juego){
-	struct jugador *jugador = juego->jugador;
+	if (!juego || !juego->jugador)
+        return;
+    struct jugador *jugador = juego->jugador;
 	if (entrada == TECLA_DERECHA)
 		jugador->x++;
 	else if (entrada == TECLA_IZQUIERDA)
