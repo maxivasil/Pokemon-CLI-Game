@@ -34,7 +34,7 @@ size_t menu_cantidad(menu_t* menu) {
    return hash_cantidad((hash_t*)menu);
 }
 
-bool menu_agregar_opcion(menu_t* menu, char* letra, const char* descripcion, void (*opcion)(void*), void* contexto) {
+bool menu_agregar_opcion(menu_t* menu, char* letra, const char* descripcion, bool (*accion)(void*), void* contexto) {
     opcion_t* nueva_opcion = malloc(sizeof(opcion_t)); //me creo el struct de la nueva opcion a realizar
     if (!nueva_opcion)
         return false;
@@ -45,7 +45,7 @@ bool menu_agregar_opcion(menu_t* menu, char* letra, const char* descripcion, voi
         return false;
     }
 
-    nueva_opcion->funcion = opcion;
+    nueva_opcion->funcion = accion;
     nueva_opcion->contexto = contexto;
     opcion_t* opcion_anterior = NULL;
     if (!hash_insertar((hash_t*)menu, letra, nueva_opcion, (void**)&opcion_anterior)) {
@@ -77,18 +77,16 @@ void menu_mostrar(menu_t* menu) {
 }
 
 // Función para manejar la selección de opciones y ejecutar la acción correspondiente
-void menu_ejecutar_opcion(menu_t* menu, char* letra) {
+bool menu_ejecutar_opcion(menu_t* menu, char* letra) {
     if (!menu || !letra)
-        return;
-
+        return false;
     opcion_t* opcion = (opcion_t*)hash_buscar((hash_t*)menu, letra);
     if (!opcion) {
-        printf("Opción inválida: %s\n", letra);
-        return;
+        return false;
     }
     if (!opcion->funcion) 
-        return;
-    opcion->funcion(opcion->contexto);
+        return false;
+    return opcion->funcion(opcion->contexto);
 }
 
 void menu_destruir_todo(menu_t* menu) {

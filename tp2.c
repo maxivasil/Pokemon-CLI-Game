@@ -37,20 +37,54 @@ int logica(int entrada, void *datos) {
 	juego_mover(entrada, juego);
     dibujar_tablero(juego); // Renderizar el tablero.
 
-    return entrada == 'q' || entrada == 'Q' || juego->segundos <= 0;
+    if(entrada == 'q' || entrada == 'Q' || juego->segundos <= 0) {
+		//mostrar_estadisticas();
+		return 1;
+	}
+	return 0;
 }
 
-void jugar(void *logica)
+bool jugar(void *logica)
 {
 	contexto_jugar_t* ctx = (contexto_jugar_t*)logica;
-    ctx->juego->jugador->x = (size_t)rand() % ANCHO_TABLERO; 
-	ctx->juego->jugador->y = (size_t)rand() % ALTO_TABLERO; 
+    ctx->juego->jugador->x = 0;//rand() % ANCHO_TABLERO; 
+	ctx->juego->jugador->y = 0;//rand() % ALTO_TABLERO; 
 	ctx->juego->segundos = SEGUNDOS_DE_JUEGO;
+	if(!ctx->juego->semilla) {
+		int semilla = (int)time(NULL);
+		srand((unsigned int)semilla);
+		semilla = rand();
+		srand((unsigned int)semilla);
+		ctx->juego->semilla = (size_t)semilla;
+	}
     game_loop(ctx->f_logica, ctx->juego);
+	return false;
 }
 
-void jugar_con_semilla(void* nada){
-	return;
+bool jugar_con_semilla(void* contexto) {
+    int semilla = 0;
+    char buffer[20];
+    char* endptr;
+
+    do {
+        printf("Inserte el número de semilla (entero positivo): ");
+        if (!fgets(buffer, sizeof(buffer), stdin)) {
+            printf("Error al leer la entrada. Intente nuevamente.\n");
+            continue;
+        }
+
+        semilla = (int)strtol(buffer, &endptr, 10);
+
+        if (buffer == endptr || *endptr != '\n' || semilla <= 0) {
+            printf("Entrada no válida. Asegúrese de ingresar un número entero positivo mayor que 0.\n");
+        }
+    } while (buffer == endptr || *endptr != '\n' || semilla <= 0);
+
+    srand((unsigned int)semilla);
+
+    contexto_jugar_t* ctx = (contexto_jugar_t*)contexto;
+    ctx->juego->semilla = (size_t)semilla;
+    return jugar((void*)ctx);
 }
 
 int obtener_opcion()
@@ -77,22 +111,24 @@ int obtener_opcion()
 /*
 * Ejecuta la opcion previamente ingresada por el usuario.
 */
-void ejecutar_opcion(int opcion_a_ejecutar, menu_t* menu)
+bool ejecutar_opcion(int opcion, menu_t* menu)
 {
 	// Convertir la opción de tipo 'char' a 'char*' para usarla como clave en el hash
-	char opcion_str[2] = {(char)opcion_a_ejecutar, '\0' };
-	menu_ejecutar_opcion(menu, opcion_str);
-	menu_mostrar(menu); //vuelvo a mostrar el menu
+	char opcion_str[2] = {(char)opcion, '\0' };
+	if (!menu_ejecutar_opcion(menu, opcion_str)) {
+		return false;
+	}
+	return true;
 }
 
 int main(int argc, char *argv[])
 {
 	borrar_pantalla();
-	if (argc != 2) {
-		printf("Argumentos no validos, ingrese un archivo a 'analizar'\n");
+	if (argc < 2) {
+		printf("%s <archivo>\n", argv[0]);
 		return -1;
 	}
-	srand((unsigned int)time(NULL)); // Inicializa la semilla de aleatoriedad
+	//srand((unsigned int)time(NULL)); // Inicializa la semilla de aleatoriedad
 
 	struct archivo_csv *archivo = abrir_archivo_csv(argv[1], ',');
 	if (!archivo){
@@ -125,22 +161,16 @@ int main(int argc, char *argv[])
 
 	menu_agregar_opcion(menu,"P", "Mostrar pokemones",pokedex_imprimir, (void*)pokedex); //meter los pokemones en un abb con inorden
 	menu_agregar_opcion(menu,"J", "Iniciar Juego", jugar , contexto_jugar);
-	menu_agregar_opcion(menu,"S", "Iniciar Juego con semilla", jugar_con_semilla ,NULL);
+	menu_agregar_opcion(menu,"S", "Iniciar Juego con semilla", jugar_con_semilla ,contexto_jugar);
 	menu_agregar_opcion(menu,"Q", "Salir", NULL ,NULL);
-	menu_mostrar(menu);
 
 	int opcion;
-	// Bucle que sigue ejecutándose hasta que se elige salir ('Q')
 	do {
-		opcion = obtener_opcion();  // esperar una opción válida
-		if (opcion != 'Q') {        // ejecutar solo si no se elige 'Q'
-			ejecutar_opcion(opcion, menu);  // ejecutar la opción seleccionada
-		} else {
-		liberar_todo(archivo, menu, contexto_jugar, pokedex, juego_nuevo);
-		return 0;
-		}
-	} while (opcion != 'Q');  // ver esto pq no esta bien. despuesde jugar una vez ya 
+		menu_mostrar(menu);
+		opcion = obtener_opcion();
+	} while (ejecutar_opcion(opcion, menu));
 
+	liberar_todo(archivo, menu, contexto_jugar, pokedex, juego_nuevo);
 	mostrar_cursor();
 
 	return 0;

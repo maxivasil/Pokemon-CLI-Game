@@ -90,7 +90,7 @@ void juego_agregar_pokemon(juego_t* juego, pokemon_t *pokemon){
 }
 
 void juego_mover(int entrada, juego_t* juego) {
-    if (!entrada || !juego)
+    if (!juego || !entrada || toupper(entrada) == 'Q')
         return;
     mover_jugador(entrada, juego);
     mover_pokemones(entrada, juego);
@@ -164,8 +164,17 @@ void mover_pokemones(int movimiento_jugador, juego_t *juego) {
     }
 }
 
-void dibujar_tablero(juego_t *juego) {
+void dibujar_tablero(juego_t* juego) {
+    // Imprimir la línea superior del tablero
+    printf("╔");
+    for (size_t j = 0; j < juego->ancho; j++) {
+        printf("═");
+    }
+    printf("╗\n");
+
     for (size_t i = 0; i < juego->alto; i++) {
+        printf("║"); // Borde izquierdo
+
         for (size_t j = 0; j < juego->ancho; j++) {
             bool impreso = false;
 
@@ -176,16 +185,16 @@ void dibujar_tablero(juego_t *juego) {
             }
 
             // Imprimir Pokémon solo si no se imprimió el jugador
-            if (!impreso) {
-                size_t cantidad_pokemones = lista_cantidad_elementos(juego->pokemones_tablero);
-                for (size_t k = 0; k < cantidad_pokemones; k++) {
-                    pokemon_t* pokemon_actual = NULL;
-                    lista_obtener_elemento(juego->pokemones_tablero, k, (void**)&pokemon_actual);
-                    if (pokemon_actual && pokemon_actual->x == j && pokemon_actual->y == i) {
-                        printf("%s" ANSI_COLOR_BOLD "%c" ANSI_COLOR_RESET, pokemon_actual->color, pokemon_actual->nombre[0]);
-                        impreso = true;
-                        break;
-                    }
+            size_t cantidad_pokemones = lista_cantidad_elementos(juego->pokemones_tablero);
+            for (size_t k = 0; k < cantidad_pokemones; k++) {
+                if (impreso)
+                    break;
+                pokemon_t* pokemon_actual = NULL;
+                lista_obtener_elemento(juego->pokemones_tablero, k, (void**)&pokemon_actual);
+                if (pokemon_actual && pokemon_actual->x == j && pokemon_actual->y == i) {
+                    printf("%s" ANSI_COLOR_BOLD "%c" ANSI_COLOR_RESET, pokemon_actual->color, pokemon_actual->nombre[0]);
+                    impreso = true;
+                    break;
                 }
             }
 
@@ -193,15 +202,26 @@ void dibujar_tablero(juego_t *juego) {
             if (!impreso)
                 printf(" ");
         }
-        printf("\n");
+        printf("║\n");
     }
 
+    // Imprimir la línea inferior del tablero
+    printf("╚");
+    for (size_t j = 0; j < juego->ancho; j++) {
+        printf("═");
+    }
+    printf("╝\n");
+
     // Imprimir estadísticas al pie del tablero
-    printf(ANSI_COLOR_YELLOW "Tiempo: %zu  Puntaje: %ld\n" ANSI_COLOR_RESET,
-           juego->segundos, juego->jugador->puntos_obtenidos);
-    printf(ANSI_COLOR_CYAN "Último capturado: %s\n" ANSI_COLOR_RESET, 
-           juego->jugador->ultimo_poke_capturado ? juego->jugador->ultimo_poke_capturado : "Ninguno");
+    printf(ANSI_COLOR_WHITE "┌───────────────────────────────────────────────┐\n" ANSI_COLOR_RESET);
+    printf(ANSI_COLOR_WHITE "  Tiempo: %zu  Puntaje: %ld  Capturados: %ld\n" ANSI_COLOR_RESET,
+           juego->segundos, juego->jugador->puntos_obtenidos, juego->cant_atrapados);
+    printf(ANSI_COLOR_WHITE "  Último capturado: " ANSI_COLOR_RESET ANSI_COLOR_BOLD "%s %s\n" ANSI_COLOR_RESET, 
+           juego->jugador->ultimo_poke_capturado ? juego->jugador->ultimo_poke_capturado->color : "",
+           juego->jugador->ultimo_poke_capturado ? juego->jugador->ultimo_poke_capturado->nombre : "Ninguno");
+    printf(ANSI_COLOR_WHITE "└───────────────────────────────────────────────┘\n" ANSI_COLOR_RESET);
 }
+
 
 void capturar_pokemon(juego_t *juego) { // devuelve la cantidad de capturados
     jugador_t* jugador = juego->jugador;
@@ -214,9 +234,10 @@ void capturar_pokemon(juego_t *juego) { // devuelve la cantidad de capturados
             if (jugador->x == pokemon_actual->x && jugador->y == pokemon_actual->y) {
                 lista_quitar_elemento(juego->pokemones_tablero, (size_t)i, NULL);
                 lista_agregar_al_final(juego->pokemones_capturados, (void*)pokemon_actual);
-                cant_capturados++;
+                juego->cant_atrapados++;
                 jugador->puntos_obtenidos += pokemon_actual->puntos;
-                jugador->ultimo_poke_capturado = pokemon_actual->nombre;
+                jugador->ultimo_poke_capturado = pokemon_actual;
+                cant_capturados++;
             }        
         }
     }
@@ -253,9 +274,12 @@ void procesar_entrada(int entrada, struct juego* juego){
 }
 
 void dibujar_cabecera(struct juego* juego){
-	printf("Utilizar " ANSI_COLOR_CYAN ANSI_COLOR_BOLD
+    printf(ANSI_COLOR_WHITE "┌───────────────────────────────────────────────┐\n" ANSI_COLOR_RESET);
+	printf("  Utilizar " ANSI_COLOR_CYAN ANSI_COLOR_BOLD
 	       "⬆⬇⬅➡" ANSI_COLOR_RESET " para moverse\n");
 
-	printf("Presionar " ANSI_COLOR_RED ANSI_COLOR_BOLD "Q" ANSI_COLOR_RESET
+	printf("  Presionar " ANSI_COLOR_RED ANSI_COLOR_BOLD "Q" ANSI_COLOR_RESET
 	       " para salir\n");
+    printf("  🌱 Semilla N°: %ld \n", juego->semilla);
+    printf(ANSI_COLOR_WHITE "└───────────────────────────────────────────────┘\n" ANSI_COLOR_RESET);
 }

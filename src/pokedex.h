@@ -64,7 +64,7 @@ size_t pokedex_cantidad(pokedex_t *pokedex);
  */
 size_t pokedex_iterar(pokedex_t *pokedex, bool (*f)(void *, void *), void *ctx);
 
-void pokedex_imprimir(void* ctx);
+bool pokedex_imprimir(void* ctx);
 
 /**
  * Rellena el vector de punteros con los pokemones de la pokedex siguiendo un orden

@@ -10,7 +10,7 @@ struct jugador {
 	size_t iteraciones;
     size_t puntos_obtenidos;
     char icono;
-    char* ultimo_poke_capturado;
+    pokemon_t* ultimo_poke_capturado;
 };
 
 typedef struct juego{
@@ -20,6 +20,8 @@ typedef struct juego{
     jugador_t* jugador;
     size_t cant_pokemones_tablero;
     size_t segundos;
+    size_t semilla;
+    size_t cant_atrapados;
     int ancho;
     int alto;
 }juego_t;

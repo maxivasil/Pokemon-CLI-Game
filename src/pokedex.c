@@ -109,10 +109,11 @@ size_t pokedex_iterar(pokedex_t* pokedex,  bool (*f)(void *, void *), void* ctx)
     return abb_iterar_inorden((abb_t*)pokedex, f, ctx);
 }
 
-void pokedex_imprimir(void* ctx) {
+bool pokedex_imprimir(void* ctx) {
     pokedex_t* pokedex = (pokedex_t*)ctx; 
     printf("Pokemones conocidos:\n");
     abb_iterar_inorden((abb_t*)pokedex, imprimir_pokemon, NULL);
+    return true;
 }
 
 size_t pokedex_vectorizar(pokedex_t* pokedex, pokemon_t** vector,size_t tamaño){

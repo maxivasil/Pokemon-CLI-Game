@@ -4,10 +4,11 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+#include "ctype.h"
 
 #define ANCHO_TABLERO 32
 #define ALTO_TABLERO 15
-#define SEGUNDOS_DE_JUEGO 70
+#define SEGUNDOS_DE_JUEGO 30
 #define CANTIDAD_POKEMONES_A_AGREGAR 7
 
 int max(int a, int b);
