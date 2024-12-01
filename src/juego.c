@@ -13,6 +13,12 @@ typedef struct elemento {
     char* color;
 } elemento_t;
 
+typedef struct contexto_agregar_pokemones {
+    int ancho;
+    int alto;
+    Lista* lista;
+} ctx_t;
+
 void limitar_rango(int *valor, int minimo, int maximo) {
     *valor = (*valor < minimo) ? minimo : (*valor > maximo) ? maximo : *valor;
 }
@@ -59,20 +65,20 @@ pokemon_juego_t* copiar_pokemon(pokemon_juego_t* pokemon) {
     return pokemon_copia;
 }
 
-bool agregar_pokemon_a_lista(void* pokemon, void* lista) {
-    if(!pokemon || !lista)
+bool agregar_pokemon_a_lista(void* pokemon, void* ctx) {
+    if(!pokemon || !ctx)
         return false;
-    Lista* list = (Lista*)lista;
+    ctx_t* contexto = (ctx_t*)ctx;
     pokemon_t* poke_parseado = (pokemon_t*)pokemon;
     pokemon_juego_t pokemon_juego = {.nombre=poke_parseado->nombre, 
                                      .puntos=poke_parseado->puntos, 
                                      .color=poke_parseado->color, 
                                      .patron_movimiento=poke_parseado->patron_movimiento,
-                                     .x=generar_posicion_random(ANCHO_TABLERO), 
-                                     .y=generar_posicion_random(ALTO_TABLERO),
+                                     .x=generar_posicion_random(contexto->ancho), 
+                                     .y=generar_posicion_random(contexto->alto),
                                      .iteracion=0};
     pokemon_juego_t* copia_poke = copiar_pokemon(&pokemon_juego);
-    lista_agregar_al_final(list, copia_poke);
+    lista_agregar_al_final(contexto->lista, copia_poke);
     return true;
 }
 
@@ -82,7 +88,8 @@ void juego_agregar_pokemones(juego_t* juego, size_t cant_pokemones_a_agregar) {
         size_t indice = (size_t)rand() % lista_cantidad_elementos(juego->fuente_de_pokemones);
         pokemon_juego_t* poke = NULL;
         lista_obtener_elemento(juego->fuente_de_pokemones, indice, (void**)&poke);
-        agregar_pokemon_a_lista((void*)poke, (void*)juego->pokemones_tablero);
+        ctx_t ctx = {.alto=juego->alto, .ancho=juego->ancho, .lista=juego->pokemones_tablero};
+        agregar_pokemon_a_lista((void*)poke, (void*)&ctx);
     }
 }
 
@@ -113,8 +120,8 @@ juego_t* juego_crear(int ancho, int alto, size_t segundos, char icono_jugador, p
         juego_destruir(juego);
         return NULL;
     }
-    
-    pokedex_iterar(pokedex, agregar_pokemon_a_lista, juego->fuente_de_pokemones);
+    ctx_t ctx = {.alto=alto, .ancho=ancho, .lista=juego->fuente_de_pokemones};
+    pokedex_iterar(pokedex, agregar_pokemon_a_lista, (void*)&ctx);
     juego->variables.multiplicador = 1;
     juego->jugador->icono = icono_jugador;
     juego->variables.segundos_restantes = segundos; 
