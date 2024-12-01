@@ -11,14 +11,6 @@
 #define SEGUNDOS_DE_JUEGO 30
 #define CANTIDAD_POKEMONES_A_AGREGAR 7
 
-int max(int a, int b);
-
-int min(int a, int b);
-
-size_t my_pow2(size_t x);
-
-size_t my_log2(size_t n);
-
 char *copiar(const char *s);
 
 int generar_posicion_random(int limite);

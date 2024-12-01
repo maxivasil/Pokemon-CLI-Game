@@ -13,6 +13,21 @@ typedef struct elemento {
     char* color;
 } elemento_t;
 
+void limitar_rango(int *valor, int minimo, int maximo) {
+    *valor = (*valor < minimo) ? minimo : (*valor > maximo) ? maximo : *valor;
+}
+
+size_t my_pow2(size_t x) {
+    return 1ULL << (x);
+}
+
+size_t my_log2(size_t n) {
+    size_t log = 0;
+    while (n >>= 1)
+        log++;
+    return log;
+}
+
 void procesar_entrada(int entrada, struct juego* juego){
 	if (!juego || !juego->jugador)
         return;
@@ -26,8 +41,8 @@ void procesar_entrada(int entrada, struct juego* juego){
 	else if (entrada == TECLA_ABAJO)
 		jugador->y++;
 
-	jugador->x = min(juego->ancho - 1, max(0, jugador->x));
-	jugador->y = min(juego->alto - 1, max(0, jugador->y));
+	limitar_rango(&(jugador->x), 0, juego->ancho - 1);
+	limitar_rango(&(jugador->y), 0, juego->alto - 1);
 }
 
 pokemon_juego_t* copiar_pokemon(pokemon_juego_t* pokemon) {
@@ -80,28 +95,22 @@ juego_t* juego_crear(int ancho, int alto, size_t segundos, char icono_jugador, p
         return NULL;
     juego->jugador = calloc(1, sizeof(jugador_t));
     if(!juego->jugador) {
-        free(juego);
+        juego_destruir(juego);
         return NULL;
     }
     juego->pokemones_tablero = lista_crear();
     if(!juego->pokemones_tablero) {
-        free(juego->jugador);
-        free(juego);
+        juego_destruir(juego);
         return NULL;
     }
     juego->pokemones_capturados = pila_crear();
     if(!juego->pokemones_capturados) {
-        lista_destruir_todo(juego->pokemones_tablero, destruir_pokemon);
-        free(juego->jugador);
-        free(juego);
+        juego_destruir(juego);
         return NULL;
     }
     juego->fuente_de_pokemones = lista_crear();
     if(!juego->fuente_de_pokemones) {
-        pila_destruir_todo(juego->pokemones_capturados, destruir_pokemon);
-        lista_destruir_todo(juego->pokemones_tablero, destruir_pokemon);
-        free(juego->jugador);
-        free(juego);
+        juego_destruir(juego);
         return NULL;
     }
     
@@ -118,11 +127,14 @@ juego_t* juego_crear(int ancho, int alto, size_t segundos, char icono_jugador, p
 void juego_destruir(juego_t* juego) {
     if (!juego)
         return;
-    
-    free(juego->jugador);
-    lista_destruir_todo(juego->fuente_de_pokemones, destruir_pokemon);
-    lista_destruir_todo(juego->pokemones_tablero, destruir_pokemon);
-    pila_destruir_todo(juego->pokemones_capturados, destruir_pokemon);
+    if(juego->jugador)
+        free(juego->jugador);
+    if(juego->fuente_de_pokemones)
+        lista_destruir_todo(juego->fuente_de_pokemones, destruir_pokemon);
+    if(juego->pokemones_tablero)
+        lista_destruir_todo(juego->pokemones_tablero, destruir_pokemon);
+    if(juego->pokemones_capturados)
+        pila_destruir_todo(juego->pokemones_capturados, destruir_pokemon);
     free(juego);
 }
 
@@ -132,68 +144,85 @@ void mover_jugador(int entrada, juego_t* juego) {
     procesar_entrada(entrada, juego);
 }
 
-void mover_pokemones(int movimiento_jugador, juego_t *juego) {
-    if (!juego)
-        return;
-    size_t cantidad_pokemones = lista_cantidad_elementos(juego->pokemones_tablero);
-    for (size_t k = 0; k < cantidad_pokemones; k++) {
-        pokemon_juego_t* pokemon = NULL;
-        lista_obtener_elemento(juego->pokemones_tablero, k, (void**)&pokemon);
-        if (!pokemon || !pokemon->patron_movimiento)
-            continue;
-        size_t patron_len = strlen(pokemon->patron_movimiento);
-        if (patron_len == 0) 
-            continue;
-        size_t iteracion = pokemon->iteracion;
-        char movimiento = pokemon->patron_movimiento[iteracion % patron_len];
-        int nueva_x = pokemon->x;
-        int nueva_y = pokemon->y;
-        switch (movimiento) {
-            case 'N': nueva_y--; break;
-            case 'S': nueva_y++; break;
-            case 'E': nueva_x++; break;
-            case 'O': nueva_x--; break;
-            case 'J':
-                switch (movimiento_jugador) {
-                    case TECLA_DERECHA: nueva_x++; break;
-                    case TECLA_IZQUIERDA: nueva_x--; break;
-                    case TECLA_ABAJO: nueva_y++; break;
-                    case TECLA_ARRIBA: nueva_y--; break;
-                } break;
-            case 'I': 
-                switch (movimiento_jugador) {
-                    case TECLA_DERECHA: nueva_x--; break;
-                    case TECLA_IZQUIERDA: nueva_x++; break;
-                    case TECLA_ABAJO: nueva_y--; break;
-                    case TECLA_ARRIBA: nueva_y++; break;
-                } break;
-            case 'R': {
-                int direccion = rand() % 4;
-                switch (direccion) {
-                    case 0:
-                        nueva_y--; break;
-                    case 1: 
-                        nueva_y++;break;
-                    case 2: 
-                        nueva_x--; break;
-        
-                    case 3: 
-                        nueva_x++; break;
-                    }
-                }break;
-            }
-        nueva_x = min(juego->ancho - 1, max(0, nueva_x));
-        nueva_y = min(juego->alto - 1, max(0, nueva_y));
-
-        pokemon->x = nueva_x;
-        pokemon->y = nueva_y; 
-        pokemon->iteracion++;
+void obtener_nueva_posicion_por_movimiento(char movimiento, int *nueva_x, int *nueva_y) {
+    switch (movimiento) {
+        case 'N': (*nueva_y)--; break;
+        case 'S': (*nueva_y)++; break;
+        case 'E': (*nueva_x)++; break;
+        case 'O': (*nueva_x)--; break;
     }
 }
 
+void obtener_nueva_posicion_por_jugador(int movimiento_jugador, int *nueva_x, int *nueva_y, bool invertido) {
+    switch (movimiento_jugador) {
+        case TECLA_DERECHA: *nueva_x += (invertido ? -1 : 1); break;
+        case TECLA_IZQUIERDA: *nueva_x += (invertido ? 1 : -1); break;
+        case TECLA_ABAJO: *nueva_y += (invertido ? -1 : 1); break;
+        case TECLA_ARRIBA: *nueva_y += (invertido ? 1 : -1); break;
+    }
+}
+
+void obtener_nueva_posicion_aleatoria(int *nueva_x, int *nueva_y) {
+    int direccion = rand() % 4;
+    switch (direccion) {
+        case 0: (*nueva_y)--; break;
+        case 1: (*nueva_y)++; break;
+        case 2: (*nueva_x)--; break;
+        case 3: (*nueva_x)++; break;
+    }
+}
+
+void actualizar_posicion_pokemon(pokemon_juego_t *pokemon, int movimiento_jugador, int ancho, int alto) {
+    if (!pokemon || !pokemon->patron_movimiento)
+        return;
+
+    size_t patron_len = strlen(pokemon->patron_movimiento);
+    if (patron_len == 0)
+        return;
+
+    size_t iteracion = pokemon->iteracion;
+    char movimiento = pokemon->patron_movimiento[iteracion % patron_len];
+    int nueva_x = pokemon->x;
+    int nueva_y = pokemon->y;
+
+    switch (movimiento) {
+        case 'N': case 'S': case 'E': case 'O':
+            obtener_nueva_posicion_por_movimiento(movimiento, &nueva_x, &nueva_y);
+            break;
+        case 'J':
+            obtener_nueva_posicion_por_jugador(movimiento_jugador, &nueva_x, &nueva_y, false);
+            break;
+        case 'I':
+            obtener_nueva_posicion_por_jugador(movimiento_jugador, &nueva_x, &nueva_y, true);
+            break;
+        case 'R':
+            obtener_nueva_posicion_aleatoria(&nueva_x, &nueva_y);
+            break;
+    }
+
+    limitar_rango(&(nueva_x), 0, ancho - 1);
+    limitar_rango(&(nueva_y), 0, alto - 1);
+
+    pokemon->x = nueva_x;
+    pokemon->y = nueva_y;
+    pokemon->iteracion++;
+}
+
+void mover_pokemones(int movimiento_jugador, juego_t *juego) {
+    if (!juego)
+        return;
+
+    size_t cantidad_pokemones = lista_cantidad_elementos(juego->pokemones_tablero);
+    for (size_t k = 0; k < cantidad_pokemones; k++) {
+        pokemon_juego_t *pokemon = NULL;
+        lista_obtener_elemento(juego->pokemones_tablero, k, (void**)&pokemon);
+        actualizar_posicion_pokemon(pokemon, movimiento_jugador, juego->ancho, juego->alto);
+    }
+}
+
+
 void incrementar_multiplicador(juego_t* juego, pokemon_juego_t* poke_atrapado) {
     if(!juego->variables.ultimo_poke_capturado) {
-        juego->variables.multiplicador = 1;
         juego->variables.combo_maximo = 1;
         return;
     }
@@ -208,25 +237,33 @@ void incrementar_multiplicador(juego_t* juego, pokemon_juego_t* poke_atrapado) {
 
 }
 
+void procesar_captura_pokemon(juego_t *juego, pokemon_juego_t *pokemon, size_t indice) {
+    if (!pokemon)
+        return;
+    
+    lista_quitar_elemento(juego->pokemones_tablero, indice, NULL);
+    pila_apilar(juego->pokemones_capturados, pokemon);
+    incrementar_multiplicador(juego, pokemon);
+    juego->variables.cant_atrapados++;
+    juego->variables.puntos_obtenidos += (pokemon->puntos * juego->variables.multiplicador);
+    juego->variables.ultimo_poke_capturado = pokemon;
+}
+
 void capturar_pokemon(juego_t *juego) {
-    jugador_t* jugador = juego->jugador;
+    jugador_t *jugador = juego->jugador;
     size_t cant_capturados = 0;
+
     int cantidad_pokemones = (int)lista_cantidad_elementos(juego->pokemones_tablero);
-    for(int i = cantidad_pokemones - 1; i >= 0; i--){
+    for (int i = cantidad_pokemones - 1; i >= 0; i--) {
         pokemon_juego_t *pokemon_actual = NULL;
-        lista_obtener_elemento(juego->pokemones_tablero, (size_t)i, (void**)&pokemon_actual);
-        if (pokemon_actual) {
-            if (jugador->x == pokemon_actual->x && jugador->y == pokemon_actual->y) {
-                lista_quitar_elemento(juego->pokemones_tablero, (size_t)i, NULL);
-                pila_apilar(juego->pokemones_capturados, (void*)pokemon_actual);
-                incrementar_multiplicador(juego, pokemon_actual);
-                juego->variables.cant_atrapados++;
-                juego->variables.puntos_obtenidos += (pokemon_actual->puntos * juego->variables.multiplicador);
-                juego->variables.ultimo_poke_capturado = pokemon_actual;
-                cant_capturados++;
-            }        
+        lista_obtener_elemento(juego->pokemones_tablero, (size_t)i, (void **)&pokemon_actual);
+        
+        if (pokemon_actual && jugador->x == pokemon_actual->x && jugador->y == pokemon_actual->y) {
+            procesar_captura_pokemon(juego, pokemon_actual, (size_t)i);
+            cant_capturados++;
         }
     }
+
     juego_agregar_pokemones(juego, cant_capturados);
 }
 
@@ -260,23 +297,47 @@ void dibujar_pie(juego_t* juego) {
     printf(ANSI_COLOR_WHITE "└───────────────────────────────────────────────┘\n" ANSI_COLOR_RESET);
 }
 
-void juego_dibujar_tablero(juego_t* juego) {
-    dibujar_cabecera(juego);
-    elemento_t** tablero = calloc((size_t)juego->alto, sizeof(elemento_t*));
-    if (!tablero) {
-        fprintf(stderr, "Error al asignar memoria para el tablero\n");
-        return;
-    }
+void dibujar_bordes_tablero(size_t ancho) {
+    printf("╔");
+    for (size_t j = 0; j < ancho; j++)
+        printf("═");
+    printf("╗\n");
+}
 
-    for (size_t i = 0; i < juego->alto; i++) {
-        tablero[i] = calloc((size_t)juego->ancho, sizeof(elemento_t));
-        if (!tablero[i]) {
-            fprintf(stderr, "Error al asignar memoria para una fila del tablero\n");
-            for (size_t k = 0; k < i; k++) free(tablero[k]);
-            free(tablero);
-            return;
+void dibujar_filas_tablero(elemento_t **tablero, size_t ancho, size_t alto) {
+    for (size_t i = 0; i < alto; i++) {
+        printf("║");
+        for (size_t j = 0; j < ancho; j++) {
+            elemento_t elemento = tablero[i][j];
+            if (elemento.icono != '\0')
+                printf("%s" ANSI_COLOR_BOLD "%c" ANSI_COLOR_RESET, elemento.color, elemento.icono);
+            else
+                printf(" ");
         }
+        printf("║\n");
     }
+}
+
+void inicializar_tablero(elemento_t ***tablero, size_t ancho, size_t alto) {
+    *tablero = calloc(alto, sizeof(elemento_t*));
+    for (size_t i = 0; i < alto; i++) {
+        (*tablero)[i] = calloc(ancho, sizeof(elemento_t));
+    }
+}
+
+void liberar_tablero(elemento_t **tablero, size_t alto) {
+    for (size_t i = 0; i < alto; i++) {
+        free(tablero[i]);
+    }
+    free(tablero);
+}
+
+void juego_dibujar_tablero(juego_t *juego) {
+    dibujar_cabecera(juego);
+
+    elemento_t **tablero = NULL;
+    inicializar_tablero(&tablero, (size_t)juego->ancho, (size_t)juego->alto);
+
     tablero[juego->jugador->y][juego->jugador->x].x = juego->jugador->x;
     tablero[juego->jugador->y][juego->jugador->x].y = juego->jugador->y;
     tablero[juego->jugador->y][juego->jugador->x].icono = juego->jugador->icono;
@@ -284,8 +345,8 @@ void juego_dibujar_tablero(juego_t* juego) {
 
     size_t cantidad_pokemones = lista_cantidad_elementos(juego->pokemones_tablero);
     for (size_t k = 0; k < cantidad_pokemones; k++) {
-        pokemon_juego_t* pokemon_actual = NULL;
-        lista_obtener_elemento(juego->pokemones_tablero, k, (void**)&pokemon_actual);
+        pokemon_juego_t *pokemon_actual = NULL;
+        lista_obtener_elemento(juego->pokemones_tablero, k, (void **)&pokemon_actual);
         if (pokemon_actual &&
             pokemon_actual->x < juego->ancho &&
             pokemon_actual->y < juego->alto) {
@@ -295,48 +356,31 @@ void juego_dibujar_tablero(juego_t* juego) {
             tablero[pokemon_actual->y][pokemon_actual->x].color = pokemon_actual->color;
         }
     }
-    printf("╔");
-    for (size_t j = 0; j < juego->ancho; j++)
-        printf("═");
-    printf("╗\n");
 
-    for (size_t i = 0; i < juego->alto; i++) {
-        printf("║");
-        for (size_t j = 0; j < juego->ancho; j++) {
-            elemento_t elemento = tablero[i][j];
-            if (elemento.icono != '\0')
-                printf("%s" ANSI_COLOR_BOLD "%c" ANSI_COLOR_RESET, elemento.color, elemento.icono);
-            else 
-                printf(" ");
-        }
-        printf("║\n");
-    }
-
+    dibujar_bordes_tablero((size_t)juego->ancho);
+    dibujar_filas_tablero(tablero, (size_t)juego->ancho, (size_t)juego->alto);
     printf("╚");
     for (size_t j = 0; j < juego->ancho; j++)
         printf("═");
     printf("╝\n");
 
-    for (size_t i = 0; i < juego->alto; i++) {
-        free(tablero[i]);
-    }
-    free(tablero);
+    liberar_tablero(tablero, (size_t)juego->alto);
     dibujar_pie(juego);
 }
 
 void juego_mostrar_estadisticas(juego_t* juego) {
-    if (juego->variables.cant_atrapados == 0) {
+    if (juego->variables.cant_atrapados == 0)
         printf(ANSI_COLOR_WHITE ANSI_COLOR_BOLD "\n NO ATRAPASTE NINGÚN POKEMÓN\n Más suerte la próxima!\n" ANSI_COLOR_RESET);
-        return;
-    }
-    printf(ANSI_COLOR_WHITE ANSI_COLOR_BOLD "\n Combo máximo: %ld  Multiplicador máximo: %ld.0  Total atrapados: %ld\n" ANSI_COLOR_RESET, 
-    juego->variables.combo_maximo, my_pow2(juego->variables.combo_maximo - 1), juego->variables.cant_atrapados);
-    printf(ANSI_COLOR_WHITE ANSI_COLOR_BOLD " De último a primero:\n" ANSI_COLOR_RESET);
-    while (!pila_esta_vacía(juego->pokemones_capturados)) {
-        pokemon_juego_t* atrapado = pila_desapilar(juego->pokemones_capturados);
-        if (atrapado) {
-            printf(ANSI_COLOR_WHITE ANSI_COLOR_BOLD" - " ANSI_COLOR_RESET ANSI_COLOR_BOLD " %s%s\n" ANSI_COLOR_RESET, atrapado->color, atrapado->nombre);
-            destruir_pokemon(atrapado);
+    printf(ANSI_COLOR_WHITE ANSI_COLOR_BOLD "\n TU PUNTAJE FUE: %ld\n Combo máximo: %ld  Multiplicador máximo: %ld.0  Total atrapados: %ld\n" ANSI_COLOR_RESET, 
+    juego->variables.puntos_obtenidos, juego->variables.combo_maximo, juego->variables.cant_atrapados ? my_pow2(juego->variables.combo_maximo - 1) : 1, juego->variables.cant_atrapados);
+    if (juego->variables.cant_atrapados != 0) {
+        printf(ANSI_COLOR_WHITE ANSI_COLOR_BOLD " De último a primero:\n" ANSI_COLOR_RESET);
+        while (!pila_esta_vacía(juego->pokemones_capturados)) {
+            pokemon_juego_t* atrapado = pila_desapilar(juego->pokemones_capturados);
+            if (atrapado) {
+                printf(ANSI_COLOR_WHITE ANSI_COLOR_BOLD" - " ANSI_COLOR_RESET ANSI_COLOR_BOLD " %s%s\n" ANSI_COLOR_RESET, atrapado->color, atrapado->nombre);
+                destruir_pokemon(atrapado);
+            }
         }
     }
 }

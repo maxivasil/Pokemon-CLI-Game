@@ -4,24 +4,28 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <time.h>
 #include "src/menu.h"
 #include "src/juego.h"
 #include "src/pokedex.h"
-#include <time.h>
 #include "src/csv.h"
 #include "src/utils.h"
+#include "src/texto_ascii.h"
 
 typedef struct contexto_jugar {
 	juego_t* juego;
     int (*f_logica)(int entrada, void* datos);
 } contexto_jugar_t;
 
-void liberar_todo(struct archivo_csv *archivo, menu_t *menu, contexto_jugar_t* contexto_jugar, pokedex_t *pokedex, juego_t *juego) {
-	cerrar_archivo_csv(archivo);
-	menu_destruir_todo(menu);
-	free(contexto_jugar);
-	pokedex_destruir_todo(pokedex);
-	juego_destruir(juego);
+void liberar_todo(menu_t *menu, contexto_jugar_t* contexto_jugar, pokedex_t *pokedex, juego_t *juego) {
+	if(menu)
+		menu_destruir_todo(menu);
+	if(contexto_jugar)
+		free(contexto_jugar);
+	if(pokedex)
+		pokedex_destruir_todo(pokedex);
+	if(juego)
+		juego_destruir(juego);
 }
 
 int logica(int entrada, void *datos) {
@@ -43,11 +47,10 @@ int logica(int entrada, void *datos) {
 	return 0;
 }
 
-bool jugar(void *logica)
-{
+bool jugar(void *logica) {
 	contexto_jugar_t* ctx = (contexto_jugar_t*)logica;
-    ctx->juego->jugador->x = 0;//rand() % ANCHO_TABLERO; 
-	ctx->juego->jugador->y = 0;//rand() % ALTO_TABLERO; 
+    ctx->juego->jugador->x = 0;
+	ctx->juego->jugador->y = 0;
 	ctx->juego->variables.segundos_restantes = SEGUNDOS_DE_JUEGO;
 	if(!ctx->juego->semilla) {
 		int semilla = (int)time(NULL);
@@ -75,9 +78,8 @@ bool jugar_con_semilla(void* contexto) {
 
         semilla = (int)strtol(buffer, &endptr, 10);
 
-        if (buffer == endptr || *endptr != '\n' || semilla <= 0) {
+        if (buffer == endptr || *endptr != '\n' || semilla <= 0)
             printf("Entrada no válida. Asegúrese de ingresar un número entero positivo mayor que 0.\n");
-        }
     } while (buffer == endptr || *endptr != '\n' || semilla <= 0);
 
     srand((unsigned int)semilla);
@@ -108,21 +110,17 @@ int solicitar_opcion(menu_t* menu) {
     return opcion_valida ? opcion_elegida : 0;
 }
 
-bool ejecutar_opcion(int opcion, menu_t* menu)
-{
+bool ejecutar_opcion(int opcion, menu_t* menu) {
 	char opcion_str[2] = {(char)opcion, '\0' };
-	if (!menu_ejecutar_opcion(menu, opcion_str)) {
+	if (!menu_ejecutar_opcion(menu, opcion_str))
 		return false;
-	}
 	return true;
 }
 
-int main(int argc, char *argv[])
-{
-	borrar_pantalla();
+pokedex_t* manejar_archivo(int argc, char *argv[]) {
 	if (argc < 2) {
 		printf("%s <archivo>\n", argv[0]);
-		return -1;
+		return 0;
 	}
 	struct archivo_csv *archivo = abrir_archivo_csv(argv[1], ',');
 	if (!archivo){
@@ -131,23 +129,34 @@ int main(int argc, char *argv[])
 	}
 	pokedex_t* pokedex = pokedex_crear();
 	if (!pokedex) {
-		printf("No se pudo crear la Pokedex.\n");
 		cerrar_archivo_csv(archivo);
 		return 0;
 	}
 	pokedex_insertar_desde_archivo(archivo, pokedex);
-	printf(ANSI_COLOR_WHITE ANSI_COLOR_BOLD "\nBIENVENID@ A POKEMON RUN\n" ANSI_COLOR_RESET);
+	cerrar_archivo_csv(archivo);
+	return pokedex;
+}
+
+int main(int argc, char *argv[]) {
+	borrar_pantalla();
+	pokedex_t* pokedex = manejar_archivo(argc, argv);
+	if(!pokedex)
+		return -1;
+	imprimir_mensaje_bienvenida();
 	menu_t* menu = menu_crear();
 	if (!menu) {
-        printf("Error al crear el menú.\n");
+		liberar_todo(NULL, NULL, pokedex, NULL);
         return -1;
     }
 	
 	struct juego* juego_nuevo = juego_crear(ANCHO_TABLERO, ALTO_TABLERO, SEGUNDOS_DE_JUEGO, '@', pokedex); 
-	
+	if (!juego_nuevo) {
+		liberar_todo(menu, NULL, pokedex, NULL);
+		return -1;
+	}
 	contexto_jugar_t* contexto_jugar = malloc(sizeof(contexto_jugar_t));
 	if (!contexto_jugar) {
-		liberar_todo(archivo, menu, NULL, pokedex, juego_nuevo);
+		liberar_todo(menu, NULL, pokedex, juego_nuevo);
 		return -1;
 	}
 	contexto_jugar->juego = juego_nuevo;
@@ -164,7 +173,7 @@ int main(int argc, char *argv[])
 		opcion = solicitar_opcion(menu);
 	} while (ejecutar_opcion(opcion, menu));
 
-	liberar_todo(archivo, menu, contexto_jugar, pokedex, juego_nuevo);
+	liberar_todo(menu, contexto_jugar, pokedex, juego_nuevo);
 	mostrar_cursor();
 
 	return 0;

@@ -6,33 +6,12 @@
 #include "pokedex.h"
 #include "../extra/ansi.h"
 
-int max(int a, int b) {
-    return a > b ? a : b;
-}
-
-int min(int a, int b) {
-    return a < b ? a : b;
-}
-
-size_t my_pow2(size_t x) {
-    return 1ULL << (x);
-}
-
-size_t my_log2(size_t n) {
-    size_t log = 0;
-    while (n >>= 1) {
-        log++;
-    }
-    return log;
-}
-
 char *copiar(const char *s)
 {
 	size_t len = strlen(s) + 1;
 	char *copia = malloc(len);
-	if (copia) {
+	if (copia)
 		memcpy(copia, s, len);
-	}
 	return copia;
 }
 
@@ -85,8 +64,8 @@ char* obtener_color_ansi(char* color) {
 }
 
 void destruir_pokemon(void *pokemon_void) {
-    if (!pokemon_void) return;
-
+    if (!pokemon_void) 
+        return;
     pokemon_t *pokemon = (pokemon_t *)pokemon_void;
     free(pokemon->nombre);
     free(pokemon->patron_movimiento);

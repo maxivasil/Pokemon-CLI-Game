@@ -7,8 +7,7 @@
 #include "../extra/ansi.h"
 
 
-bool imprimir_pokemon(void *elemento, void *ctx)
-{
+bool imprimir_pokemon(void *elemento, void *ctx) {
 	if (!elemento)
 		return false;
 
@@ -19,12 +18,11 @@ bool imprimir_pokemon(void *elemento, void *ctx)
     char *color = pokemon->color;
     char *patron = pokemon->patron_movimiento;
 
-    printf(ANSI_COLOR_BOLD "%s %s " ANSI_COLOR_RESET "(%s) " ANSI_COLOR_BOLD "→ %ld puntos\n" ANSI_COLOR_RESET, color, nombre, patron,puntos);  // Imprimir con color
+    printf(ANSI_COLOR_BOLD "%s %s " ANSI_COLOR_RESET "(%s) " ANSI_COLOR_BOLD "→ %ld puntos\n" ANSI_COLOR_RESET, color, nombre, patron,puntos);
     return true;
 }
 
-int comparar_nombre_pokemon(void *poke1, void *poke2)
-{
+int comparar_nombre_pokemon(void *poke1, void *poke2) {
 	pokemon_t *pokemon1 = (pokemon_t *)poke1;
 	pokemon_t *pokemon2 = (pokemon_t *)poke2;
 
@@ -67,9 +65,8 @@ void pokedex_insertar_desde_archivo(struct archivo_csv* archivo, pokedex_t* poke
 
 		if (patron_mov) {
             size_t len = strlen(patron_mov);
-            if (len > 0 && patron_mov[len - 1] == '\n') {
+            if (len > 0 && patron_mov[len - 1] == '\n')
                 patron_mov[len - 1] = '\0';
-            }
         }
         pokemon_leido->color = obtener_color_ansi(color);
 		free(color);
