@@ -1,10 +1,10 @@
-#include "utils.h"
-#include "pokedex.h"
-#include "../extra/ansi.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <stdint.h>
+#include "utils.h"
+#include "pokedex.h"
+#include "../extra/ansi.h"
 
 int max(int a, int b) {
     return a > b ? a : b;
@@ -12,6 +12,18 @@ int max(int a, int b) {
 
 int min(int a, int b) {
     return a < b ? a : b;
+}
+
+size_t my_pow2(size_t x) {
+    return 1ULL << (x);
+}
+
+size_t my_log2(size_t n) {
+    size_t log = 0;
+    while (n >>= 1) {
+        log++;
+    }
+    return log;
 }
 
 char *copiar(const char *s)
@@ -44,33 +56,32 @@ bool leer_int(const char *str, void *ctx)
 	return sscanf(str, "%d", (int *)ctx) == 1;
 }
 
-// --- Función para obtener colores ANSI ---
 char* obtener_color_ansi(char* color) {
-    switch (color[0]) { // Usamos el primer carácter del nombre para el switch
-		case 'A':  // AZUL O AMARILLO
+    switch (color[0]) {
+		case 'A':
             if (strcmp(color, "AZUL") == 0) return ANSI_COLOR_BLUE;
 			if (strcmp(color, "AMARILLO") == 0) return ANSI_COLOR_YELLOW;
             break;
-		case 'B':  // AZUL O AMARILLO
+		case 'B':
             if (strcmp(color, "BLANCO") == 0) return ANSI_COLOR_BLACK;
             break;
-		case 'C':  // AZUL O AMARILLO
+		case 'C':
             if (strcmp(color, "CYAN") == 0) return ANSI_COLOR_CYAN;
             break;
-        case 'M':  // MAGENTA
+        case 'M':
             if (strcmp(color, "MAGENTA") == 0) return ANSI_COLOR_MAGENTA;
             break;
-		case 'N':  // AZUL O AMARILLO
+		case 'N':
             if (strcmp(color, "NEGRO") == 0) return ANSI_COLOR_BLACK;
             break;
-		case 'R':  // ROJO
+		case 'R':
             if (strcmp(color, "ROJO") == 0) return ANSI_COLOR_RED;
             break;
-		case 'V':  // VERDE
+		case 'V':
             if (strcmp(color, "VERDE") == 0) return ANSI_COLOR_GREEN;
             break;
     }
-    return ANSI_COLOR_RESET; //si no se encuentra el color
+    return ANSI_COLOR_RESET;
 }
 
 void destruir_pokemon(void *pokemon_void) {

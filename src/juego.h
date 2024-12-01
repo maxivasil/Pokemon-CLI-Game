@@ -5,14 +5,24 @@
 #include "pila.h"
 #include "pokedex.h"
 
+typedef struct pokemon_juego {
+    char* nombre;
+    size_t puntos;
+    char* color;
+    char* patron_movimiento;
+    int x;
+    int y;
+    size_t iteracion;
+}pokemon_juego_t;
+
 typedef struct variables {
     size_t segundos_restantes;
     size_t cant_atrapados;
     size_t puntos_obtenidos;
     size_t iteraciones;
     size_t multiplicador;
-    pokemon_t* ultimo_poke_capturado;
-    
+    size_t combo_maximo;
+    pokemon_juego_t* ultimo_poke_capturado;
 } variables_t;
 
 struct jugador {
@@ -44,7 +54,5 @@ void juego_dibujar_tablero(juego_t* juego);
 void juego_destruir(juego_t* juego);
 
 void juego_mostrar_estadisticas(juego_t* juego);
-
-void juego_dibujar_cabecera(struct juego* juego);
 
 #endif // JUEGO_H_

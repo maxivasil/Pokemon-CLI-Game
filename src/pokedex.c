@@ -31,16 +31,6 @@ int comparar_nombre_pokemon(void *poke1, void *poke2)
 	return strcmp(pokemon1->nombre, pokemon2->nombre);
 }
 
-void mezclar_vector(pokemon_t** vector, size_t n) {
-    for (size_t i = n - 1; i > 0; i--) {
-        size_t j = (size_t) rand() % (i + 1); // genera un índice aleatorio entre 0 e i
-        pokemon_t* temp = vector[i];
-        vector[i] = vector[j];
-        vector[j] = temp;
-    }
-}
-
-
 pokedex_t* pokedex_crear() {
     return (pokedex_t*)abb_crear(comparar_nombre_pokemon);
 }
@@ -67,7 +57,7 @@ void pokedex_insertar_desde_archivo(struct archivo_csv* archivo, pokedex_t* poke
 		pokemon_t *pokemon_leido = malloc(sizeof(struct pokemon));
 		if (!pokemon_leido) {
 			free(nombre); 
-            free(color);  //VER SI ESTO HACE FALTA 
+            free(color);
             free(patron_mov);
 			break;
 		}
@@ -78,16 +68,12 @@ void pokedex_insertar_desde_archivo(struct archivo_csv* archivo, pokedex_t* poke
 		if (patron_mov) {
             size_t len = strlen(patron_mov);
             if (len > 0 && patron_mov[len - 1] == '\n') {
-                patron_mov[len - 1] = '\0'; // saco el '\n'
+                patron_mov[len - 1] = '\0';
             }
         }
         pokemon_leido->color = obtener_color_ansi(color);
 		free(color);
-
 		pokemon_leido->patron_movimiento = patron_mov;
-		pokemon_leido->x = generar_posicion_random(ANCHO_TABLERO);
-		pokemon_leido->y = generar_posicion_random(ALTO_TABLERO);
-		pokemon_leido->iteracion = 0;
 		pokedex_insertar(pokedex, pokemon_leido);
 	}
 }
@@ -114,10 +100,4 @@ bool pokedex_imprimir(void* ctx) {
     printf("Pokemones conocidos:\n");
     abb_iterar_inorden((abb_t*)pokedex, imprimir_pokemon, NULL);
     return true;
-}
-
-size_t pokedex_vectorizar(pokedex_t* pokedex, pokemon_t** vector,size_t tamaño){
-    size_t vectorizados = abb_vectorizar_inorden((abb_t*)pokedex, (void**)vector, tamaño);
-    mezclar_vector(vector, vectorizados);
-    return vectorizados;
 }

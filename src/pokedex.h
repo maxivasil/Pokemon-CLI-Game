@@ -13,9 +13,6 @@ typedef struct pokemon {
     size_t puntos;
     char* color;
     char* patron_movimiento;
-    int x;  // Cambiado a size_t
-    int y;  // Cambiado a size_t
-    size_t iteracion;
 }pokemon_t;
 
 /**
@@ -65,13 +62,5 @@ size_t pokedex_cantidad(pokedex_t *pokedex);
 size_t pokedex_iterar(pokedex_t *pokedex, bool (*f)(void *, void *), void *ctx);
 
 bool pokedex_imprimir(void* ctx);
-
-/**
- * Rellena el vector de punteros con los pokemones de la pokedex siguiendo un orden
- * dado. Tamaño indica la capacidad del vector.
- *
- * Devuelve la cantidad de pokemones guardados en el vector.
- */
-size_t pokedex_vectorizar(pokedex_t *pokedex, pokemon_t **pokemones, size_t tamaño);
 
 #endif // POKEDEX_H_

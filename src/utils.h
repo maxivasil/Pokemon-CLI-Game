@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
-#include "ctype.h"
+#include <ctype.h>
 
 #define ANCHO_TABLERO 32
 #define ALTO_TABLERO 15
@@ -14,6 +14,10 @@
 int max(int a, int b);
 
 int min(int a, int b);
+
+size_t my_pow2(size_t x);
+
+size_t my_log2(size_t n);
 
 char *copiar(const char *s);
 

@@ -33,7 +33,6 @@ int logica(int entrada, void *datos) {
 	if (juego->variables.iteraciones % 5 == 0)
 		juego->variables.segundos_restantes--;
 
-	juego_dibujar_cabecera(juego);
 	juego_mover(entrada, juego);
     juego_dibujar_tablero(juego);
 
