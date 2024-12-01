@@ -43,9 +43,11 @@ typedef struct juego{
     int alto;
 }juego_t;
 
-juego_t* juego_crear(int ancho, int alto, size_t tiempo, char icono, pokedex_t* pokedex);
+juego_t* juego_crear(int ancho, int alto, size_t tiempo, char icono);
 
 void juego_agregar_pokemones(juego_t* juego, size_t cant_pokemones_a_agregar);
+
+void juego_subir_pokemones(juego_t* juego, pokedex_t* pokedex);
 
 void juego_mover(int entrada, juego_t* juego);
 

@@ -15,6 +15,7 @@
 typedef struct contexto_jugar {
 	juego_t* juego;
     int (*f_logica)(int entrada, void* datos);
+	pokedex_t* pokedex;
 } contexto_jugar_t;
 
 void liberar_todo(menu_t *menu, contexto_jugar_t* contexto_jugar, pokedex_t *pokedex, juego_t *juego) {
@@ -47,11 +48,72 @@ int logica(int entrada, void *datos) {
 	return 0;
 }
 
+void solicitar_valores_juego(int* ancho, int* alto, size_t* segundos, size_t* cantidad_pokemones, char* icono) {
+    char buffer[20];
+    char temp_icono;
+    bool entrada_valida = false;
+
+    do {
+        printf("Ingrese el ancho del tablero (mínimo 10, máximo 50): ");
+        if (fgets(buffer, sizeof(buffer), stdin) && sscanf(buffer, "%d", ancho) == 1 && *ancho >= 10 && *ancho <= 50)
+            entrada_valida = true;
+        else
+            printf("Entrada inválida. Asegúrese de ingresar un número entre 10 y 50.\n");
+    } while (!entrada_valida);
+
+    entrada_valida = false;
+    do {
+        printf("Ingrese el alto del tablero (mínimo 5, máximo 30): ");
+        if (fgets(buffer, sizeof(buffer), stdin) && sscanf(buffer, "%d", alto) == 1 && *alto >= 5 && *alto <= 30)
+            entrada_valida = true;
+        else
+            printf("Entrada inválida. Asegúrese de ingresar un número entre 5 y 30.\n");
+    } while (!entrada_valida);
+
+    entrada_valida = false;
+    do {
+        printf("Ingrese el tiempo del juego en segundos (mínimo 10, máximo 60): ");
+        if (fgets(buffer, sizeof(buffer), stdin) && sscanf(buffer, "%zu", segundos) == 1 && *segundos >= 10 && *segundos <= 60)
+            entrada_valida = true;
+        else
+            printf("Entrada inválida. Asegúrese de ingresar un número entre 10 y 60.\n");
+    } while (!entrada_valida);
+
+    entrada_valida = false;
+    do {
+        printf("Ingrese la cantidad de pokemones a agregar (mínimo 1, máximo 100): ");
+        if (fgets(buffer, sizeof(buffer), stdin) && sscanf(buffer, "%zu", cantidad_pokemones) == 1 && *cantidad_pokemones >= 1 && *cantidad_pokemones <= 100)
+            entrada_valida = true;
+        else
+            printf("Entrada inválida. Asegúrese de ingresar un número entre 1 y 100.\n");
+    } while (!entrada_valida);
+
+    entrada_valida = false;
+    do {
+        printf("Ingrese el ícono del jugador (un solo carácter visible): ");
+        if (fgets(buffer, sizeof(buffer), stdin) && sscanf(buffer, " %c", &temp_icono) == 1 && isprint((unsigned char)temp_icono)) {
+            entrada_valida = true;
+            *icono = temp_icono;
+        } else {
+            printf("Entrada inválida. Ingrese un único carácter visible.\n");
+        }
+    } while (!entrada_valida);
+}
+
+
 bool jugar(void *logica) {
+	int ancho, alto;
+	size_t segundos, cantidad_pokemones;
+	char icono;
+	solicitar_valores_juego(&ancho, &alto, &segundos, &cantidad_pokemones, &icono);
 	contexto_jugar_t* ctx = (contexto_jugar_t*)logica;
-    ctx->juego->jugador->x = 0;
+	ctx->juego->ancho = ancho;
+	ctx->juego->alto = alto;
+	ctx->juego->variables.segundos_restantes = segundos;
+	ctx->juego->cant_pokemones_tablero = cantidad_pokemones;
+	ctx->juego->jugador->icono = icono;
+	ctx->juego->jugador->x = 0;
 	ctx->juego->jugador->y = 0;
-	ctx->juego->variables.segundos_restantes = SEGUNDOS_DE_JUEGO;
 	if(!ctx->juego->semilla) {
 		int semilla = (int)time(NULL);
 		srand((unsigned int)semilla);
@@ -59,7 +121,7 @@ bool jugar(void *logica) {
 		srand((unsigned int)semilla);
 		ctx->juego->semilla = (size_t)semilla;
 	}
-	juego_agregar_pokemones(ctx->juego, (size_t)CANTIDAD_POKEMONES_A_AGREGAR);
+	juego_subir_pokemones(ctx->juego, ctx->pokedex);
     game_loop(ctx->f_logica, ctx->juego);
 	return false;
 }
@@ -149,7 +211,7 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 	
-	struct juego* juego_nuevo = juego_crear(ANCHO_TABLERO, ALTO_TABLERO, SEGUNDOS_DE_JUEGO, '@', pokedex); 
+	struct juego* juego_nuevo = juego_crear(0, 0, 0, '@'); 
 	if (!juego_nuevo) {
 		liberar_todo(menu, NULL, pokedex, NULL);
 		return -1;
@@ -161,6 +223,7 @@ int main(int argc, char *argv[]) {
 	}
 	contexto_jugar->juego = juego_nuevo;
 	contexto_jugar->f_logica = logica;
+	contexto_jugar->pokedex = pokedex;
 
 	menu_agregar_opcion(menu,"P", "Mostrar pokemones",pokedex_imprimir, (void*)pokedex);
 	menu_agregar_opcion(menu,"J", "Iniciar Juego", jugar , contexto_jugar);

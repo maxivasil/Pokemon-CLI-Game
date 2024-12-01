@@ -93,10 +93,13 @@ void juego_agregar_pokemones(juego_t* juego, size_t cant_pokemones_a_agregar) {
     }
 }
 
-juego_t* juego_crear(int ancho, int alto, size_t segundos, char icono_jugador, pokedex_t* pokedex){
-    if(!ancho || !alto || !segundos || !pokedex)
-        return NULL;
+void juego_subir_pokemones(juego_t* juego, pokedex_t* pokedex) {
+    ctx_t ctx = {.alto=juego->alto, .ancho=juego->ancho, .lista=juego->fuente_de_pokemones};
+    pokedex_iterar(pokedex, agregar_pokemon_a_lista, (void*)&ctx);
+    juego_agregar_pokemones(juego, juego->cant_pokemones_tablero);
+}
 
+juego_t* juego_crear(int ancho, int alto, size_t segundos, char icono_jugador){
     juego_t* juego = calloc(1, sizeof(juego_t));
     if (!juego)
         return NULL;
@@ -120,8 +123,6 @@ juego_t* juego_crear(int ancho, int alto, size_t segundos, char icono_jugador, p
         juego_destruir(juego);
         return NULL;
     }
-    ctx_t ctx = {.alto=alto, .ancho=ancho, .lista=juego->fuente_de_pokemones};
-    pokedex_iterar(pokedex, agregar_pokemon_a_lista, (void*)&ctx);
     juego->variables.multiplicador = 1;
     juego->jugador->icono = icono_jugador;
     juego->variables.segundos_restantes = segundos; 
