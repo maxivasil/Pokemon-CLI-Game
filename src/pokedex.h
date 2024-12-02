@@ -8,11 +8,11 @@
 
 typedef struct pokedex pokedex_t;
 typedef struct pokemon {
-    char* nombre;
-    size_t puntos;
-    char* color;
-    char* patron_movimiento;
-}pokemon_t;
+	char *nombre;
+	size_t puntos;
+	char *color;
+	char *patron_movimiento;
+} pokemon_t;
 
 /**
  * Crea una pokedex_t.
@@ -34,7 +34,8 @@ bool pokedex_insertar(pokedex_t *pokedex, pokemon_t *pokemon);
  * Inserta todos los pokemones de un archivo csv en la pokedex. Recibe un 
  * puntero a un struct archivo_csv y el puntero a la pokedex. No devuelve nada.
  */
-void pokedex_insertar_desde_archivo(struct archivo_csv* archivo, pokedex_t* pokedex);
+void pokedex_insertar_desde_archivo(struct archivo_csv *archivo,
+				    pokedex_t *pokedex);
 
 /**
  * Busca un pokemon en la pokedex. Si lo encuentra lo devuelve. Caso contrario
@@ -58,6 +59,6 @@ size_t pokedex_iterar(pokedex_t *pokedex, bool (*f)(void *, void *), void *ctx);
  * Imprime por pantalla los pokemones de la pokedex. Devuelve false
  * si no hay pokemones en la pokedex o el ctx es nulo. Sino devuelve true.
  */
-bool pokedex_imprimir(void* ctx);
+bool pokedex_imprimir(void *ctx);
 
 #endif // POKEDEX_H_

@@ -15,11 +15,12 @@ char *copiar(const char *s)
 	return copia;
 }
 
-void destruir_pokemon(void *pokemon_void) {
-    if (!pokemon_void) 
-        return;
-    pokemon_t *pokemon = (pokemon_t *)pokemon_void;
-    free(pokemon->nombre);
-    free(pokemon->patron_movimiento);
-    free(pokemon);
+void destruir_pokemon(void *pokemon_void)
+{
+	if (!pokemon_void)
+		return;
+	pokemon_t *pokemon = (pokemon_t *)pokemon_void;
+	free(pokemon->nombre);
+	free(pokemon->patron_movimiento);
+	free(pokemon);
 }
