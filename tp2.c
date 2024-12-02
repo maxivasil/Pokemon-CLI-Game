@@ -20,11 +20,11 @@ typedef struct contexto_jugar {
 
 void liberar_todo(menu_t *menu, contexto_jugar_t* contexto_jugar, pokedex_t *pokedex, juego_t *juego) {
 	if(menu)
-		menu_destruir_todo(menu);
+		menu_destruir(menu);
 	if(contexto_jugar)
 		free(contexto_jugar);
 	if(pokedex)
-		pokedex_destruir_todo(pokedex);
+		pokedex_destruir(pokedex);
 	if(juego)
 		juego_destruir(juego);
 }
@@ -211,7 +211,7 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 	
-	struct juego* juego_nuevo = juego_crear(0, 0, 0, '@'); 
+	struct juego* juego_nuevo = juego_crear(1, 1, 1, '@'); 
 	if (!juego_nuevo) {
 		liberar_todo(menu, NULL, pokedex, NULL);
 		return -1;

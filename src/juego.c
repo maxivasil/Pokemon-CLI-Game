@@ -6,6 +6,16 @@
 #include "juego.h"
 #include "utils.h"
 
+struct pokemon_juego {
+    char* nombre;
+    size_t puntos;
+    char* color;
+    char* patron_movimiento;
+    int x;
+    int y;
+    size_t iteracion;
+};
+
 typedef struct elemento {
     int x;
     int y;
@@ -18,6 +28,10 @@ typedef struct contexto_agregar_pokemones {
     int alto;
     Lista* lista;
 } ctx_t;
+
+int generar_posicion_random(int limite) {
+    return (int)rand() % limite;
+}
 
 void limitar_rango(int *valor, int minimo, int maximo) {
     *valor = (*valor < minimo) ? minimo : (*valor > maximo) ? maximo : *valor;
@@ -83,9 +97,11 @@ bool agregar_pokemon_a_lista(void* pokemon, void* ctx) {
 }
 
 void juego_agregar_pokemones(juego_t* juego, size_t cant_pokemones_a_agregar) {
+    if(!juego || cant_pokemones_a_agregar < 1 || lista_cantidad_elementos(juego->fuente_de_pokemones) == 0)
+        return;
     juego->cant_pokemones_tablero = cant_pokemones_a_agregar;
     for (size_t i = 0; i < cant_pokemones_a_agregar; i++) {
-        size_t indice = (size_t)rand() % lista_cantidad_elementos(juego->fuente_de_pokemones);
+        size_t indice = (size_t)generar_posicion_random((int)lista_cantidad_elementos(juego->fuente_de_pokemones));
         pokemon_juego_t* poke = NULL;
         lista_obtener_elemento(juego->fuente_de_pokemones, indice, (void**)&poke);
         ctx_t ctx = {.alto=juego->alto, .ancho=juego->ancho, .lista=juego->pokemones_tablero};
@@ -94,12 +110,16 @@ void juego_agregar_pokemones(juego_t* juego, size_t cant_pokemones_a_agregar) {
 }
 
 void juego_subir_pokemones(juego_t* juego, pokedex_t* pokedex) {
+    if(!juego)
+        return;
     ctx_t ctx = {.alto=juego->alto, .ancho=juego->ancho, .lista=juego->fuente_de_pokemones};
     pokedex_iterar(pokedex, agregar_pokemon_a_lista, (void*)&ctx);
     juego_agregar_pokemones(juego, juego->cant_pokemones_tablero);
 }
 
 juego_t* juego_crear(int ancho, int alto, size_t segundos, char icono_jugador){
+    if(ancho < 1 || alto < 1 || segundos < 1)
+        return NULL;
     juego_t* juego = calloc(1, sizeof(juego_t));
     if (!juego)
         return NULL;
@@ -171,7 +191,7 @@ void obtener_nueva_posicion_por_jugador(int movimiento_jugador, int *nueva_x, in
 }
 
 void obtener_nueva_posicion_aleatoria(int *nueva_x, int *nueva_y) {
-    int direccion = rand() % 4;
+    int direccion = generar_posicion_random(4);
     switch (direccion) {
         case 0: (*nueva_y)--; break;
         case 1: (*nueva_y)++; break;
@@ -258,6 +278,8 @@ void procesar_captura_pokemon(juego_t *juego, pokemon_juego_t *pokemon, size_t i
 }
 
 void capturar_pokemon(juego_t *juego) {
+    if(!juego)
+        return;
     jugador_t *jugador = juego->jugador;
     size_t cant_capturados = 0;
 
@@ -328,19 +350,19 @@ void dibujar_filas_tablero(elemento_t **tablero, size_t ancho, size_t alto) {
 
 void inicializar_tablero(elemento_t ***tablero, size_t ancho, size_t alto) {
     *tablero = calloc(alto, sizeof(elemento_t*));
-    for (size_t i = 0; i < alto; i++) {
+    for (size_t i = 0; i < alto; i++)
         (*tablero)[i] = calloc(ancho, sizeof(elemento_t));
-    }
 }
 
 void liberar_tablero(elemento_t **tablero, size_t alto) {
-    for (size_t i = 0; i < alto; i++) {
+    for (size_t i = 0; i < alto; i++)
         free(tablero[i]);
-    }
     free(tablero);
 }
 
 void juego_dibujar_tablero(juego_t *juego) {
+    if(!juego)
+        return;
     dibujar_cabecera(juego);
 
     elemento_t **tablero = NULL;
@@ -377,6 +399,8 @@ void juego_dibujar_tablero(juego_t *juego) {
 }
 
 void juego_mostrar_estadisticas(juego_t* juego) {
+    if(!juego)
+        return;
     if (juego->variables.cant_atrapados == 0)
         printf(ANSI_COLOR_WHITE ANSI_COLOR_BOLD "\n NO ATRAPASTE NINGÚN POKEMÓN\n Más suerte la próxima!\n" ANSI_COLOR_RESET);
     printf(ANSI_COLOR_WHITE ANSI_COLOR_BOLD "\n TU PUNTAJE FUE: %ld\n Combo máximo: %ld  Multiplicador máximo: %ld.0  Total atrapados: %ld\n" ANSI_COLOR_RESET, 

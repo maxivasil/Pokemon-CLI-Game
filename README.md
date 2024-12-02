@@ -4,24 +4,27 @@
 
 # TP 2
 
-## Repositorio de (Nombre Apellido) - (Padrón) - (Mail)
+## Repositorio de Máximo Augusto Calderón Vasil - 111810 - mcalderonv@fi.uba.ar
 
 - Para compilar:
 
+
 ```bash
-línea de compilación
+gcc -Wall -Werror -O2 -g -c extra/engine.c -o engine.o
+gcc -std=c99 -Wall -Wconversion -Wtype-limits -pedantic -Werror -O2 -g src/*.c tp2.c engine.o -o tp2
 ```
 
 - Para ejecutar:
 
 ```bash
-línea de ejecución
+./tp2 datos/pokedex.csv
 ```
 
 - Para ejecutar con valgrind:
 ```bash
-línea con valgrind
+valgrind --leak-check=full --track-origins=yes --show-reachable=yes --error-exitcode=2 --show-leak-kinds=all --trace-children=yes ./tp2 datos/pokedex.csv
 ```
+
 ---
 ##  Funcionamiento
 
@@ -33,7 +36,25 @@ Incluir **EN TODOS LOS TPS** los diagramas relevantes al problema (mayormente di
 
 ### Por ejemplo:
 
-El programa funciona abriendo el archivo pasado como parámetro y leyendolo línea por línea. Por cada línea crea un registro e intenta agregarlo al vector. La función de lectura intenta leer todo el archivo o hasta encontrar el primer error. Devuelve un vector con todos los registros creados.
+El programa tp2.c funciona de la siguiente manera:
+Se abre el archivo pasado por parámetro, leyendo linea a linea. Por cada linea leida, se "parsea" el pokemon y se lo agrega a una **pokedex**.Esta pokedex, como mencionaré proximamente, esta implementada como un ABB.
+
+Detrás de este proceso de *inserción*, se implementan funciones que reservan memoria de manera tal que:
+
+* Se crea un pokemon con los atributos correspondientes (se reserva memoria ademas para su char* nombre, char* color y char* patron_movimiento). La memoria para dicho pokemon y para dichos atributos se reserva en ambos casos mediante un malloc. En el caso del color, se utiliza una funcion para obtener, dado un nombre (AZUL, ROJO, etc), el color ANSI asociado. Luego, se libera dicho color.
+
+Una vez cargados los pokemones en la pokedex, se cierra el archivo, liberando toda la memoria reservada. Luego, se crea y se agregan las opciones necesarias al menú, que son las siguientes:
+
+    (S) Iniciar Juego con semilla
+    (P) Mostrar pokemones
+    (Q) Salir
+    (J) Iniciar Juego
+
+Una vez mostradas las opciones, se le solicitará al usuario que ingrese una opcion correcta. Es valido ingresar minusculas.
+
+Si el usuario elige la opcion Q, se ejecutara dicha accion del menú, que libera y cierra el programa. Si, al contrario, el usuario ingresa la opcion P, se mostrarán los pokemones dentro de la pokedex y se volverá a mostrar el menú. Por ultimo, al jugar, con o sin semilla, se entrará al juego y luego se finalizará el programa. Cabe mencionar que si el usuario selecciona la opcion "S", se le solicitará que ingrese un numero positivo, mayor a cero, para usar de semilla.
+
+Volviendo al flujo del programa, una ve 
 
 <div align="center">
 <img width="70%" src="img/diagrama1.svg">
