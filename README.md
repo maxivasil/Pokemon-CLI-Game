@@ -42,6 +42,12 @@ valgrind --leak-check=full --track-origins=yes --show-reachable=yes --error-exit
 <div align="center">
 <img width="70%" src="img/flujo_del_programa5.png">
 </div>
+<div align="center">
+<img width="70%" src="img/flujo_del_programa6.png">
+</div>
+<div align="center">
+<img width="70%" src="img/flujo_del_programa7.png">
+</div>
 
 ##  Funcionamiento
 
@@ -153,6 +159,7 @@ juego_t, que a su vez cuenta con un struct variables:
     } juego_t;
     ```
 y jugador_t:
+
     ```c
     typedef struct jugador {
     	int x;
