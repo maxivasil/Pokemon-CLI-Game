@@ -47,7 +47,8 @@ juego_t *juego_crear(int ancho, int alto, size_t tiempo, char icono);
  * deben convivir simultáneamente en el tablero del juego. 
  * Retorna el éxito de la transacción. Si hubo error devuelve false.
  */
-bool juego_subir_pokemones(juego_t *juego, pokedex_t *pokedex, size_t cantidad_pokemones_tablero);
+bool juego_subir_pokemones(juego_t *juego, pokedex_t *pokedex,
+			   size_t cantidad_pokemones_tablero);
 
 /**
  * Realiza un movimiento completo de todos los elementos del tablero, el jugador

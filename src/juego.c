@@ -118,25 +118,28 @@ bool agregar_pokemones(juego_t *juego, size_t cant_pokemones_a_agregar)
 			(int)lista_cantidad_elementos(
 				juego->fuente_de_pokemones));
 		pokemon_juego_t *poke = NULL;
-		if(!lista_obtener_elemento(juego->fuente_de_pokemones, indice, (void **)&poke))
+		if (!lista_obtener_elemento(juego->fuente_de_pokemones, indice,
+					    (void **)&poke))
 			return false;
 		ctx_t ctx = { .alto = juego->alto,
 			      .ancho = juego->ancho,
 			      .lista = juego->pokemones_tablero };
-		if(!agregar_pokemon_a_lista((void *)poke, (void *)&ctx))
+		if (!agregar_pokemon_a_lista((void *)poke, (void *)&ctx))
 			return false;
 	}
 	return true;
 }
 
-bool juego_subir_pokemones(juego_t *juego, pokedex_t *pokedex, size_t cantidad_pokemones_tablero)
+bool juego_subir_pokemones(juego_t *juego, pokedex_t *pokedex,
+			   size_t cantidad_pokemones_tablero)
 {
 	if (!juego)
 		return false;
 	ctx_t ctx = { .alto = juego->alto,
 		      .ancho = juego->ancho,
 		      .lista = juego->fuente_de_pokemones };
-	if(pokedex_iterar(pokedex, agregar_pokemon_a_lista, (void *)&ctx) < pokedex_cantidad(pokedex))
+	if (pokedex_iterar(pokedex, agregar_pokemon_a_lista, (void *)&ctx) <
+	    pokedex_cantidad(pokedex))
 		return false;
 	juego->cant_pokemones_tablero = cantidad_pokemones_tablero;
 	return agregar_pokemones(juego, juego->cant_pokemones_tablero);

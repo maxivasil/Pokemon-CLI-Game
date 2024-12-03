@@ -37,7 +37,7 @@ size_t menu_cantidad(menu_t *menu)
 bool menu_agregar_opcion(menu_t *menu, char *letra, const char *descripcion,
 			 bool (*accion)(void *), void *contexto)
 {
-	if(!letra || !descripcion)
+	if (!letra || !descripcion)
 		return false;
 	opcion_t *nueva_opcion = malloc(sizeof(opcion_t));
 	if (!nueva_opcion)

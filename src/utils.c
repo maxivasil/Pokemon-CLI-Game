@@ -19,9 +19,9 @@ void destruir_pokemon(void *pokemon_void)
 	if (!pokemon_void)
 		return;
 	pokemon_t *pokemon = (pokemon_t *)pokemon_void;
-	if(pokemon->nombre)
+	if (pokemon->nombre)
 		free(pokemon->nombre);
-	if(pokemon->patron_movimiento)
+	if (pokemon->patron_movimiento)
 		free(pokemon->patron_movimiento);
 	free(pokemon);
 }

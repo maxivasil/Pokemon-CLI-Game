@@ -221,7 +221,7 @@ pokedex_t *manejar_archivo(int argc, char *argv[])
 
 int main(int argc, char *argv[])
 {
-	borrar_pantalla();
+	//borrar_pantalla();
 	pokedex_t *pokedex = manejar_archivo(argc, argv);
 	if (!pokedex)
 		return -1;
