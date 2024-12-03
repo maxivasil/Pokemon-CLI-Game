@@ -36,6 +36,7 @@ int logica(int entrada, void *datos)
 	juego_t *juego = (juego_t *)datos;
 
 	borrar_pantalla();
+	esconder_cursor();
 
 	juego->variables.iteraciones++;
 	if (juego->variables.iteraciones % 5 == 0)
@@ -71,10 +72,10 @@ void solicitar_valores_juego(int *ancho, int *alto, size_t *segundos,
 
 	entrada_valida = false;
 	do {
-		printf("Ingrese el alto del tablero (mínimo 5, máximo 30): ");
+		printf("Ingrese el alto del tablero (mínimo 5, máximo 26): ");
 		if (fgets(buffer, sizeof(buffer), stdin) &&
 		    sscanf(buffer, "%d", alto) == 1 && *alto >= 5 &&
-		    *alto <= 30)
+		    *alto <= 26)
 			entrada_valida = true;
 		else
 			printf("Entrada inválida. Asegúrese de ingresar un número entre 5 y 30.\n");
@@ -221,11 +222,16 @@ pokedex_t *manejar_archivo(int argc, char *argv[])
 
 int main(int argc, char *argv[])
 {
-	//borrar_pantalla();
+	borrar_pantalla();
 	pokedex_t *pokedex = manejar_archivo(argc, argv);
 	if (!pokedex)
 		return -1;
 	imprimir_mensaje_bienvenida();
+	printf(ANSI_COLOR_WHITE ANSI_COLOR_BOLD
+	       "\n\n\n				Presiona cualquier tecla para ver el menú..." ANSI_COLOR_RESET);
+	getchar();
+	borrar_pantalla();
+	imprimir_gengar();
 	menu_t *menu = menu_crear();
 	if (!menu) {
 		liberar_todo(NULL, NULL, pokedex, NULL);

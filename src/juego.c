@@ -393,23 +393,23 @@ void juego_mover(int entrada, juego_t *juego)
 void dibujar_cabecera(juego_t *juego)
 {
 	printf(ANSI_COLOR_WHITE
-	       "┌───────────────────────────────────────────────┐\n" ANSI_COLOR_RESET);
+	       "┌─────────────────────────────────────────────┐\n" ANSI_COLOR_RESET);
 	printf("  Utilizar " ANSI_COLOR_CYAN ANSI_COLOR_BOLD
 	       "⬆⬇⬅➡" ANSI_COLOR_RESET " para moverse\n");
 
 	printf("  Presionar " ANSI_COLOR_RED ANSI_COLOR_BOLD
 	       "Q" ANSI_COLOR_RESET " para salir\n");
-	printf("  🌱 Semilla N°: %ld \n", juego->semilla);
+	printf("  🌱 %ld \n", juego->semilla);
 	printf(ANSI_COLOR_WHITE
-	       "└───────────────────────────────────────────────┘\n" ANSI_COLOR_RESET);
+	       "└─────────────────────────────────────────────┘\n" ANSI_COLOR_RESET);
 }
 
 void dibujar_pie(juego_t *juego)
 {
 	printf(ANSI_COLOR_WHITE
-	       "┌───────────────────────────────────────────────┐\n" ANSI_COLOR_RESET);
+	       "┌─────────────────────────────────────────────┐\n" ANSI_COLOR_RESET);
 	printf(ANSI_COLOR_WHITE
-	       "  Tiempo: %zu  Puntaje: %ld  Multiplicador: %ld.0\n" ANSI_COLOR_RESET,
+	       "  ⌚ %zu  💯 %ld  ✖️​  %ld.0\n" ANSI_COLOR_RESET,
 	       juego->variables.segundos_restantes,
 	       juego->variables.puntos_obtenidos,
 	       juego->variables.multiplicador);
@@ -425,7 +425,7 @@ void dibujar_pie(juego_t *juego)
 		       juego->variables.ultimo_poke_capturado->nombre :
 		       "Ninguno");
 	printf(ANSI_COLOR_WHITE
-	       "└───────────────────────────────────────────────┘\n" ANSI_COLOR_RESET);
+	       "└─────────────────────────────────────────────┘\n" ANSI_COLOR_RESET);
 }
 
 void dibujar_bordes_tablero(size_t ancho)
