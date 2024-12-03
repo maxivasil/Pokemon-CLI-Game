@@ -1,5 +1,6 @@
 #include "pa2m.h"
 #include "extra/engine.h"
+#include "extra/ansi.h"
 #include "src/csv.h"
 #include "src/menu.h"
 #include "src/pokedex.h"
@@ -80,6 +81,13 @@ void AgregarVariasOpcionesLasAgregaCorrectamente()
 		res);
 	pa2m_afirmar(menu_cantidad(menu) == 3,
 		     "El menú tiene 3 opciones tras agregar A, B y C.");
+	menu_destruir(menu);
+}
+
+void sePuedeCrearUnMenuSinFuncionNiContexto()
+{
+	menu_t *menu = menu_crear();
+	pa2m_afirmar(menu_agregar_opcion(menu, "OP1", "Descripcion", NULL, NULL), "Se puede agregar una opción al menú sin función ni contexto.");
 	menu_destruir(menu);
 }
 
@@ -169,6 +177,10 @@ void CrearUnaPokedexLaCreaVacia()
 	pa2m_afirmar(pokedex != NULL, "Se creó una pokedex exitosamente.");
 	pa2m_afirmar(pokedex_cantidad(pokedex) == 0,
 		     "La pokedex está vacía tras ser creada.");
+	pokemon_t busqueda_pikachu = { "Pikachu", 0, NULL, NULL };
+	pokemon_t *pikachu =
+		(pokemon_t *)pokedex_obtener(pokedex, &busqueda_pikachu);
+	pa2m_afirmar(!pikachu, "No se puede obtener un pokemon en una pokedex vacía.");
 	pokedex_destruir(pokedex);
 }
 
@@ -176,17 +188,26 @@ void InsertarPokemonLoAgregaCorrectamente()
 {
 	pokedex_t *pokedex = pokedex_crear();
 
-	pokemon_t *pikachu = malloc(sizeof(pokemon_t));
-	pikachu->nombre = strdup("Pikachu");
-	pikachu->puntos = 100;
-	pikachu->color = "Amarillo";
-	pikachu->patron_movimiento = strdup("NRSEJI");
+	pokemon_t *pika = malloc(sizeof(pokemon_t));
+	pika->nombre = strdup("Pikachu");
+	pika->puntos = 100;
+	pika->color = "AMARILLO";
+	pika->patron_movimiento = strdup("NRSEJI");
 
-	bool res = pokedex_insertar(pokedex, pikachu);
+	bool res = pokedex_insertar(pokedex, pika);
 
 	pa2m_afirmar(res, "Se pudo insertar un Pokémon en la Pokedex.");
 	pa2m_afirmar(pokedex_cantidad(pokedex) == 1,
 		     "La Pokedex tiene 1 Pokémon tras insertar uno.");
+	
+	pokemon_t busqueda_pikachu = { "Pikachu", 0, NULL, NULL };
+	pokemon_t *pikachu =
+		(pokemon_t *)pokedex_obtener(pokedex, &busqueda_pikachu);
+	pa2m_afirmar(pikachu && strcmp(pikachu->nombre, "Pikachu") == 0,
+		     "El nombre Pikachu fue leído correctamente.");
+	pa2m_afirmar(pikachu && pikachu->puntos == 100, "Los puntos de pikachu fueron leídos correctamente");
+	pa2m_afirmar(pikachu && strcmp(pikachu->color, "AMARILLO") == 0, "El color amarillo de Pikachu fue leído correctamente.");
+	pa2m_afirmar(pikachu && strcmp(pikachu->patron_movimiento, "NRSEJI") == 0, "El patron de movimiento de Pikachu fue leído correctamente");
 
 	pokedex_destruir(pokedex);
 }
@@ -198,19 +219,19 @@ void InsertarVariosPokemonesLosAgregaCorrectamente()
 	pokemon_t *charmander = malloc(sizeof(pokemon_t));
 	charmander->nombre = strdup("Charmander");
 	charmander->puntos = 120;
-	charmander->color = "Rojo";
+	charmander->color = "ROJO";
 	charmander->patron_movimiento = strdup("RRIIEOSS");
 
 	pokemon_t *squirtle = malloc(sizeof(pokemon_t));
 	squirtle->nombre = strdup("Squirtle");
 	squirtle->puntos = 95;
-	squirtle->color = "Azul";
+	squirtle->color = "AZUL";
 	squirtle->patron_movimiento = strdup("N");
 
 	pokemon_t *bulbasaur = malloc(sizeof(pokemon_t));
 	bulbasaur->nombre = strdup("Bulbasaur");
 	bulbasaur->puntos = 110;
-	bulbasaur->color = "Verde";
+	bulbasaur->color = "VERDE";
 	bulbasaur->patron_movimiento = strdup("JIIJJ");
 
 	pa2m_afirmar(pokedex_insertar(pokedex, charmander),
@@ -221,6 +242,32 @@ void InsertarVariosPokemonesLosAgregaCorrectamente()
 		     "Se insertó Bulbasaur.");
 	pa2m_afirmar(pokedex_cantidad(pokedex) == 3,
 		     "La Pokedex tiene 3 Pokémon tras insertar tres.");
+	pokemon_t busqueda_charm = { "Charmander", 0, NULL, NULL };
+	pokemon_t *charm =
+		(pokemon_t *)pokedex_obtener(pokedex, &busqueda_charm);
+	pa2m_afirmar(charm && strcmp(charm->nombre, "Charmander") == 0,
+		     "El nombre Charmander fue leído correctamente.");
+	pa2m_afirmar(charm && charm->puntos == 120, "Los puntos de Charmander fueron leídos correctamente");
+	pa2m_afirmar(charm && strcmp(charm->color, "ROJO") == 0, "El color rojo de Charmander fue leído correctamente.");
+	pa2m_afirmar(charm && strcmp(charm->patron_movimiento, "RRIIEOSS") == 0, "El patron de movimiento de Charmander fue leído correctamente");
+
+	pokemon_t busqueda_squirtle = { "Squirtle", 0, NULL, NULL };
+	pokemon_t *squ =
+		(pokemon_t *)pokedex_obtener(pokedex, &busqueda_squirtle);
+	pa2m_afirmar(squ && strcmp(squ->nombre, "Squirtle") == 0,
+		     "El nombre Charmander fue leído correctamente.");
+	pa2m_afirmar(squ && squ->puntos == 95, "Los puntos de Squirtle fueron leídos correctamente");
+	pa2m_afirmar(squ && strcmp(squ->color, "AZUL") == 0, "El color azul de Squirtle fue leído correctamente.");
+	pa2m_afirmar(squ && strcmp(squ->patron_movimiento, "N") == 0, "El patron de movimiento de Squirtle fue leído correctamente");
+	
+	pokemon_t busqueda_bul = { "Bulbasaur", 0, NULL, NULL };
+	pokemon_t *bul =
+		(pokemon_t *)pokedex_obtener(pokedex, &busqueda_bul);
+	pa2m_afirmar(bul && strcmp(bul->nombre, "Bulbasaur") == 0,
+		     "El nombre Bulbasaur fue leído correctamente.");
+	pa2m_afirmar(bul && bul->puntos == 110, "Los puntos de Bulbasaur fueron leídos correctamente");
+	pa2m_afirmar(bul && strcmp(bul->color, "VERDE") == 0, "El color verde de Bulbasaur fue leído correctamente.");
+	pa2m_afirmar(bul && strcmp(bul->patron_movimiento, "JIIJJ") == 0, "El patron de movimiento de Bulbasaur fue leído correctamente");
 
 	pokedex_destruir(pokedex);
 }
@@ -233,9 +280,9 @@ void InsertarDesdeArchivo_ConArchivoReal()
 		fprintf(stderr, "No se pudo crear el archivo de prueba.\n");
 		return;
 	}
-	fprintf(archivo, "Pikachu,100,Amarillo,NNSS\n");
-	fprintf(archivo, "Charmander,120,Rojo,RJI\n");
-	fprintf(archivo, "Squirtle,95,Azul,IIJJ\n");
+	fprintf(archivo, "Pikachu,100,AMARILLO,NNSS\n");
+	fprintf(archivo, "Charmander,120,ROJO,RJI\n");
+	fprintf(archivo, "Squirtle,95,AZUL,IIJJ\n");
 	fclose(archivo);
 
 	struct archivo_csv *archivo_csv =
@@ -247,7 +294,7 @@ void InsertarDesdeArchivo_ConArchivoReal()
 	}
 
 	pokedex_t *pokedex = pokedex_crear();
-	pokedex_insertar_desde_archivo(archivo_csv, pokedex);
+	pa2m_afirmar(pokedex_insertar_desde_archivo(archivo_csv, pokedex), "Se insertaron los pokemones desde el archivo.");
 	pa2m_afirmar(pokedex_cantidad(pokedex) == 3,
 		     "Se insertaron 3 Pokémon desde el archivo.");
 
@@ -255,7 +302,10 @@ void InsertarDesdeArchivo_ConArchivoReal()
 	pokemon_t *pikachu =
 		(pokemon_t *)pokedex_obtener(pokedex, &busqueda_pikachu);
 	pa2m_afirmar(pikachu && strcmp(pikachu->nombre, "Pikachu") == 0,
-		     "Pikachu fue leído correctamente.");
+		     "El nombre Pikachu fue leído correctamente.");
+	pa2m_afirmar(pikachu && pikachu->puntos == 100, "Los puntos de pikachu fueron leídos correctamente");
+	pa2m_afirmar(pikachu && strcmp(pikachu->color, ANSI_COLOR_YELLOW) == 0, "El color amarillo de Pikachu fue leído correctamente.");
+	pa2m_afirmar(pikachu && strcmp(pikachu->patron_movimiento, "NNSS") == 0, "El patron de movimiento de Pikachu fue leído correctamente");
 
 	pokemon_t busqueda_charmander = { "Charmander", 0, NULL, NULL };
 	pokemon_t *charmander =
@@ -263,12 +313,19 @@ void InsertarDesdeArchivo_ConArchivoReal()
 	pa2m_afirmar(charmander &&
 			     strcmp(charmander->nombre, "Charmander") == 0,
 		     "Charmander fue leído correctamente.");
+	pa2m_afirmar(charmander && charmander->puntos == 120, "Los puntos de Charmander fueron leídos correctamente");
+	pa2m_afirmar(charmander && strcmp(charmander->color, ANSI_COLOR_RED) == 0, "El color rojo de Charmander fue leído correctamente.");
+	pa2m_afirmar(charmander && strcmp(charmander->patron_movimiento, "RJI") == 0, "El patron de movimiento de Charmander fue leído correctamente");
 
 	pokemon_t busqueda_squirtle = { "Squirtle", 0, NULL, NULL };
 	pokemon_t *squirtle =
 		(pokemon_t *)pokedex_obtener(pokedex, &busqueda_squirtle);
 	pa2m_afirmar(squirtle && strcmp(squirtle->nombre, "Squirtle") == 0,
 		     "Squirtle fue leído correctamente.");
+	pa2m_afirmar(squirtle && squirtle->puntos == 95, "Los puntos de Squirtle fueron leídos correctamente");
+	pa2m_afirmar(squirtle && strcmp(squirtle->color, ANSI_COLOR_BLUE) == 0, "El color azul de Squirtle fue leído correctamente.");
+	pa2m_afirmar(squirtle && strcmp(squirtle->patron_movimiento, "IIJJ") == 0, "El patron de movimiento de Squirtle fue leído correctamente");
+
 
 	cerrar_archivo_csv(archivo_csv);
 	pokedex_destruir(pokedex);
@@ -282,7 +339,7 @@ void BuscarPokemonLoDevuelveCorrectamente()
 	pokemon_t *pikachu = malloc(sizeof(pokemon_t));
 	pikachu->nombre = strdup("Pikachu");
 	pikachu->puntos = 100;
-	pikachu->color = "Amarillo";
+	pikachu->color = "AMARILLO";
 	pikachu->patron_movimiento = strdup("ESNO");
 
 	pokedex_insertar(pokedex, pikachu);
@@ -292,6 +349,10 @@ void BuscarPokemonLoDevuelveCorrectamente()
 		     "Se encontró correctamente a Pikachu en la Pokedex.");
 	pa2m_afirmar(pokedex_cantidad(pokedex) == 1,
 		     "Obtener de la pokedex no elimina el pokemon.");
+	pa2m_afirmar(encontrado && strcmp(encontrado->nombre, "Pikachu") == 0, "El nombre del pokemon encontrado coincide con el insertado.");
+	pa2m_afirmar(encontrado && strcmp(encontrado->color, "AMARILLO") == 0, "El color del pokemon encontrado coincide con el insertado.");
+	pa2m_afirmar(encontrado && encontrado->puntos == 100, "Los puntos del pokemon encontrado coinciden con los del insertado.");
+	pa2m_afirmar(encontrado && strcmp(encontrado->patron_movimiento, "ESNO") == 0, "El patron de movimiento del pokemon encontrado coincide con el insertado.");
 	pokedex_destruir(pokedex);
 }
 
@@ -384,18 +445,6 @@ void ProbarJuegoCrear()
 		"La cantidad de pokemones del tablero inicialmente es cero (0 == %ld)",
 		juego->cant_pokemones_tablero);
 	pa2m_afirmar(
-		lista_cantidad_elementos(juego->fuente_de_pokemones) == 0,
-		"La cantidad de pokemones de la fuente inicialmente es cero (0 == %ld)",
-		lista_cantidad_elementos(juego->fuente_de_pokemones));
-	pa2m_afirmar(
-		lista_cantidad_elementos(juego->pokemones_tablero) == 0,
-		"La cantidad de pokemones del tablero inicialmente es cero (0 == %ld)",
-		lista_cantidad_elementos(juego->pokemones_tablero));
-	pa2m_afirmar(
-		pila_cantidad(juego->pokemones_capturados) == 0,
-		"La cantidad de pokemones capturados inicialmente es cero (0 == %ld)",
-		pila_cantidad(juego->pokemones_capturados));
-	pa2m_afirmar(
 		juego->semilla == 0,
 		"La semilla inicialmente es cero hasta que se genera o se pasa una (0 == %ld)",
 		juego->semilla);
@@ -433,20 +482,21 @@ void ProbarJuegoSubirPokemones()
 	pokemon_t *charmander = malloc(sizeof(pokemon_t));
 	charmander->nombre = strdup("Charmander");
 	charmander->puntos = 120;
-	charmander->color = "Rojo";
+	charmander->color = "ROJO";
 	charmander->patron_movimiento = strdup("RRIIEOSS");
 	pokedex_insertar(pokedex, charmander);
 	pokemon_t *squirtle = malloc(sizeof(pokemon_t));
 	squirtle->nombre = strdup("Squirtle");
 	squirtle->puntos = 95;
-	squirtle->color = "Azul";
+	squirtle->color = "AZUL";
 	squirtle->patron_movimiento = strdup("N");
 	pokedex_insertar(pokedex, squirtle);
 
-	juego_subir_pokemones(juego, pokedex);
+	juego_subir_pokemones(juego, pokedex, 2);
 
 	pa2m_afirmar(lista_cantidad_elementos(juego->fuente_de_pokemones) == 2,
 		     "Los pokémones se subieron desde la pokédex.");
+	pa2m_afirmar(juego->cant_pokemones_tablero == 2, "Se debe especificar la cantidad de pokemones del tablero.");
 
 	pokedex_destruir(pokedex);
 	juego_destruir(juego);
@@ -468,20 +518,18 @@ void ProbarJuegoAgregarPokemones()
 	squirtle->color = "Azul";
 	squirtle->patron_movimiento = strdup("N");
 	pokedex_insertar(pokedex, squirtle);
-	juego_subir_pokemones(juego, pokedex);
+	juego_subir_pokemones(juego, pokedex, 80);
 
 	size_t cantidad_inicial =
 		lista_cantidad_elementos(juego->pokemones_tablero);
-	pa2m_afirmar(cantidad_inicial == 0,
-		     "El tablero originalmente tiene 0 pokémones (0 == %ld).",
+	pa2m_afirmar(cantidad_inicial == 80,
+		     "El tablero originalmente tiene 80 pokémones (80 == %ld).",
 		     cantidad_inicial);
-
-	juego_agregar_pokemones(juego, 5);
 	size_t cantidad_final =
 		lista_cantidad_elementos(juego->pokemones_tablero);
 
-	pa2m_afirmar(cantidad_final == 5,
-		     "Se agregaron 5 pokémones al tablero (5 == %ld).",
+	pa2m_afirmar(cantidad_final == 80,
+		     "Se agregaron 80 pokémones al tablero (80 == %ld).",
 		     cantidad_final);
 
 	pokedex_destruir(pokedex);
@@ -528,6 +576,7 @@ void ProbarMenuConPunteroNulo()
 	pa2m_afirmar(menu_ejecutar_opcion(NULL, "A") == false,
 		     "No se puede ejecutar una opción en un menú nulo.");
 	menu_t *menu = menu_crear();
+	pa2m_afirmar(!menu_agregar_opcion(menu, "I", NULL, NULL, NULL), "No se insertar al menu crear una opción con descripción nula.");	
 	pa2m_afirmar(!menu_contiene(menu, NULL),
 		     "Un menú no contiene claves NULL.");
 	pa2m_afirmar(!menu_ejecutar_opcion(menu, NULL),
@@ -589,9 +638,7 @@ void ProbarJuegoConPunteroNulo()
 		     "Crear un juego con alto invalido no es exitoso.");
 	pa2m_afirmar(juego_crear(10, 10, 0, '@') == NULL,
 		     "Crear un juego con tiempo invalido no es exitoso.");
-	juego_agregar_pokemones(NULL, 5);
-	pa2m_afirmar(true, "No se pueden agregar pokémones a un juego nulo.");
-	juego_subir_pokemones(NULL, pokedex);
+	juego_subir_pokemones(NULL, pokedex, 5);
 	pa2m_afirmar(
 		true,
 		"No se pueden subir pokémones desde una pokedex en un juego nulo.");
@@ -605,24 +652,16 @@ void ProbarJuegoConPunteroNulo()
 	juego_destruir(NULL);
 	pa2m_afirmar(true, "No se puede destruir un juego nulo.");
 	juego_t *juego = juego_crear(10, 10, 10, '$');
-	juego_subir_pokemones(juego, NULL);
+	juego_subir_pokemones(juego, NULL, 100);
 	pa2m_afirmar(
 		lista_cantidad_elementos(juego->fuente_de_pokemones) == 0,
 		"No se pueden subir pokemones al juego si la pokedex es nula.");
-	juego_agregar_pokemones(juego, 5);
-	pa2m_afirmar(
-		lista_cantidad_elementos(juego->pokemones_tablero) == 0,
-		"No se pueden agregar pokemones al tablero si la fuente de pokemones está vacía.");
 	pokemon_t *pokemon = malloc(sizeof(pokemon_t));
 	pokemon->nombre = strdup("Pikachu");
 	pokemon->puntos = 100;
 	pokemon->color = "Amarillo";
 	pokemon->patron_movimiento = strdup("NRSEJI");
 	pokedex_insertar(pokedex, pokemon);
-	juego_agregar_pokemones(juego, 0);
-	pa2m_afirmar(
-		lista_cantidad_elementos(juego->pokemones_tablero) == 0,
-		"No se agregan pokemones al tablero si se pide agregar menos o exactamente cero pokemones");
 	juego_mover(0, juego);
 	juego_mover('w', juego);
 	pa2m_afirmar(
@@ -638,6 +677,7 @@ int main()
 	CrearUnMenuLoCreaVacio();
 	AgregarUnaOpcionLaAgregaCorrectamente();
 	AgregarVariasOpcionesLasAgregaCorrectamente();
+	sePuedeCrearUnMenuSinFuncionNiContexto();
 	MostrarMenuMuestraCorrectamenteLasOpciones();
 	EjecutarOpcionEjecutaCorrectamente();
 	AgregarOpcionConLaMismaClaveLaAgregaYReemplazaElValor();

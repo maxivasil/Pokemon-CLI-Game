@@ -127,7 +127,6 @@ bool jugar(void *logica)
 	ctx->juego->ancho = ancho;
 	ctx->juego->alto = alto;
 	ctx->juego->variables.segundos_restantes = segundos;
-	ctx->juego->cant_pokemones_tablero = cantidad_pokemones;
 	ctx->juego->jugador->icono = icono;
 	ctx->juego->jugador->x = 0;
 	ctx->juego->jugador->y = 0;
@@ -138,7 +137,7 @@ bool jugar(void *logica)
 		srand((unsigned int)semilla);
 		ctx->juego->semilla = (size_t)semilla;
 	}
-	juego_subir_pokemones(ctx->juego, ctx->pokedex);
+	juego_subir_pokemones(ctx->juego, ctx->pokedex, cantidad_pokemones);
 	game_loop(ctx->f_logica, ctx->juego);
 	return false;
 }

@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include "utils.h"
 #include "pokedex.h"
-#include "../extra/ansi.h"
 
 char *copiar(const char *s)
 {
@@ -20,7 +19,9 @@ void destruir_pokemon(void *pokemon_void)
 	if (!pokemon_void)
 		return;
 	pokemon_t *pokemon = (pokemon_t *)pokemon_void;
-	free(pokemon->nombre);
-	free(pokemon->patron_movimiento);
+	if(pokemon->nombre)
+		free(pokemon->nombre);
+	if(pokemon->patron_movimiento)
+		free(pokemon->patron_movimiento);
 	free(pokemon);
 }

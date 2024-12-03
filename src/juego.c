@@ -107,35 +107,39 @@ bool agregar_pokemon_a_lista(void *pokemon, void *ctx)
 	return true;
 }
 
-void juego_agregar_pokemones(juego_t *juego, size_t cant_pokemones_a_agregar)
+bool agregar_pokemones(juego_t *juego, size_t cant_pokemones_a_agregar)
 {
 	if (!juego || cant_pokemones_a_agregar < 1 ||
 	    lista_cantidad_elementos(juego->fuente_de_pokemones) == 0)
-		return;
-	juego->cant_pokemones_tablero = cant_pokemones_a_agregar;
+		return false;
+	//juego->cant_pokemones_tablero = cant_pokemones_a_agregar;
 	for (size_t i = 0; i < cant_pokemones_a_agregar; i++) {
 		size_t indice = (size_t)generar_posicion_random(
 			(int)lista_cantidad_elementos(
 				juego->fuente_de_pokemones));
 		pokemon_juego_t *poke = NULL;
-		lista_obtener_elemento(juego->fuente_de_pokemones, indice,
-				       (void **)&poke);
+		if(!lista_obtener_elemento(juego->fuente_de_pokemones, indice, (void **)&poke))
+			return false;
 		ctx_t ctx = { .alto = juego->alto,
 			      .ancho = juego->ancho,
 			      .lista = juego->pokemones_tablero };
-		agregar_pokemon_a_lista((void *)poke, (void *)&ctx);
+		if(!agregar_pokemon_a_lista((void *)poke, (void *)&ctx))
+			return false;
 	}
+	return true;
 }
 
-void juego_subir_pokemones(juego_t *juego, pokedex_t *pokedex)
+bool juego_subir_pokemones(juego_t *juego, pokedex_t *pokedex, size_t cantidad_pokemones_tablero)
 {
 	if (!juego)
-		return;
+		return false;
 	ctx_t ctx = { .alto = juego->alto,
 		      .ancho = juego->ancho,
 		      .lista = juego->fuente_de_pokemones };
-	pokedex_iterar(pokedex, agregar_pokemon_a_lista, (void *)&ctx);
-	juego_agregar_pokemones(juego, juego->cant_pokemones_tablero);
+	if(pokedex_iterar(pokedex, agregar_pokemon_a_lista, (void *)&ctx) < pokedex_cantidad(pokedex))
+		return false;
+	juego->cant_pokemones_tablero = cantidad_pokemones_tablero;
+	return agregar_pokemones(juego, juego->cant_pokemones_tablero);
 }
 
 juego_t *juego_crear(int ancho, int alto, size_t segundos, char icono_jugador)
@@ -371,7 +375,7 @@ void capturar_pokemon(juego_t *juego)
 		}
 	}
 
-	juego_agregar_pokemones(juego, cant_capturados);
+	agregar_pokemones(juego, cant_capturados);
 }
 
 void juego_mover(int entrada, juego_t *juego)
@@ -407,8 +411,9 @@ void dibujar_pie(juego_t *juego)
 	       juego->variables.puntos_obtenidos,
 	       juego->variables.multiplicador);
 	printf(ANSI_COLOR_WHITE
-	       "  Capturados: %ld  Último capturado: " ANSI_COLOR_RESET
-		       ANSI_COLOR_BOLD "%s %s\n" ANSI_COLOR_RESET,
+	       "  Capturados: %ld"
+	       "Último capturado: " ANSI_COLOR_RESET ANSI_COLOR_BOLD
+	       "%s %s\n" ANSI_COLOR_RESET,
 	       juego->variables.cant_atrapados,
 	       juego->variables.ultimo_poke_capturado ?
 		       juego->variables.ultimo_poke_capturado->color :

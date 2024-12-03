@@ -42,25 +42,20 @@ typedef struct juego {
 juego_t *juego_crear(int ancho, int alto, size_t tiempo, char icono);
 
 /**
- * Agrega la cantidad de pokemones solicitada a la lista de pokemones del tablero
- * del juego.
- * No devuelve nada.
- */
-void juego_agregar_pokemones(juego_t *juego, size_t cant_pokemones_a_agregar);
-
-/**
  * Recibe una pokedex y un puntero a un juego. Carga todos los pokemones de la 
- * pokedex en la lista fuente de pokemones.
- * No devuelve nada.
+ * pokedex en la lista fuente de pokemones. Además, recibe la cantidad de pokemones que
+ * deben convivir simultáneamente en el tablero del juego. 
+ * Retorna el éxito de la transacción. Si hubo error devuelve false.
  */
-void juego_subir_pokemones(juego_t *juego, pokedex_t *pokedex);
+bool juego_subir_pokemones(juego_t *juego, pokedex_t *pokedex, size_t cantidad_pokemones_tablero);
 
 /**
  * Realiza un movimiento completo de todos los elementos del tablero, el jugador
  * y los pokemones, a partir de la entrada recibida por parámetro, que es válida
  * solamente si es alguno de los siguientes códigos ascii: 256,257,258,259, correspondientes
  * a las diferentes flechas del teclado. 
- * No devuelve nada.
+ * No devuelve nada, ya que se presume que el juego y la entrada son válidos, y ninguna operación
+ * realizada aquí debe resultar en errores.
  */
 void juego_mover(int entrada, juego_t *juego);
 

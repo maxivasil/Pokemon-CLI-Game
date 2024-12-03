@@ -101,11 +101,11 @@ bool pokedex_insertar(pokedex_t *pokedex, pokemon_t *pokemon)
 	return abb_insertar((abb_t *)pokedex, pokemon);
 }
 
-void pokedex_insertar_desde_archivo(struct archivo_csv *archivo,
+bool pokedex_insertar_desde_archivo(struct archivo_csv *archivo,
 				    pokedex_t *pokedex)
 {
 	if (!archivo || !pokedex)
-		return;
+		return false;
 	bool (*funciones[])(const char *, void *) = { leer_nombre, leer_int,
 						      leer_nombre,
 						      leer_nombre };
@@ -122,7 +122,7 @@ void pokedex_insertar_desde_archivo(struct archivo_csv *archivo,
 			free(nombre);
 			free(color);
 			free(patron_mov);
-			break;
+			return false;
 		}
 
 		pokemon_leido->nombre = nombre;
@@ -138,6 +138,7 @@ void pokedex_insertar_desde_archivo(struct archivo_csv *archivo,
 		pokemon_leido->patron_movimiento = patron_mov;
 		pokedex_insertar(pokedex, pokemon_leido);
 	}
+	return true;
 }
 
 void *pokedex_obtener(pokedex_t *pokedex, pokemon_t *pokemon)

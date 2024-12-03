@@ -34,7 +34,7 @@ bool pokedex_insertar(pokedex_t *pokedex, pokemon_t *pokemon);
  * Inserta todos los pokemones de un archivo csv en la pokedex. Recibe un 
  * puntero a un struct archivo_csv y el puntero a la pokedex. No devuelve nada.
  */
-void pokedex_insertar_desde_archivo(struct archivo_csv *archivo,
+bool pokedex_insertar_desde_archivo(struct archivo_csv *archivo,
 				    pokedex_t *pokedex);
 
 /**

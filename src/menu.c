@@ -14,6 +14,16 @@ void destruir_opcion(void *opcion_void)
 	free(opcion);
 }
 
+bool imprimir_opcion_menu(char *letra, void *valor, void *ctx)
+{
+	opcion_t *opcion_a_imprimir = (opcion_t *)valor;
+	printf(ANSI_COLOR_MAGENTA ANSI_COLOR_BOLD "(%s) " ANSI_COLOR_RESET,
+	       letra);
+	printf(ANSI_COLOR_WHITE "%s\n" ANSI_COLOR_RESET,
+	       opcion_a_imprimir->descripcion);
+	return true;
+}
+
 menu_t *menu_crear()
 {
 	return (menu_t *)hash_crear(4);
@@ -27,6 +37,8 @@ size_t menu_cantidad(menu_t *menu)
 bool menu_agregar_opcion(menu_t *menu, char *letra, const char *descripcion,
 			 bool (*accion)(void *), void *contexto)
 {
+	if(!letra || !descripcion)
+		return false;
 	opcion_t *nueva_opcion = malloc(sizeof(opcion_t));
 	if (!nueva_opcion)
 		return false;
@@ -50,16 +62,6 @@ bool menu_agregar_opcion(menu_t *menu, char *letra, const char *descripcion,
 		free(opcion_anterior->descripcion);
 		free(opcion_anterior);
 	}
-	return true;
-}
-
-bool imprimir_opcion_menu(char *letra, void *valor, void *ctx)
-{
-	opcion_t *opcion_a_imprimir = (opcion_t *)valor;
-	printf(ANSI_COLOR_MAGENTA ANSI_COLOR_BOLD "(%s) " ANSI_COLOR_RESET,
-	       letra);
-	printf(ANSI_COLOR_WHITE "%s\n" ANSI_COLOR_RESET,
-	       opcion_a_imprimir->descripcion);
 	return true;
 }
 
