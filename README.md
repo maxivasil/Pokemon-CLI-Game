@@ -1,18 +1,46 @@
-<div align="right">
-<img width="32px" src="img/algo2.svg">
+<div align="center">
+  <img src="img/algo2.svg" alt="Logo Algo2" width="80px" style="margin-bottom: 20px;">
+  
+  <h1>⚡ Pokémon CLI Strategy - TP2</h1>
+
+  <p>
+    <strong>Algoritmos y Estructuras de Datos</strong><br>
+    Un juego de estrategia y gestión de memoria desarrollado en C estándar.
+  </p>
+
+  <img src="https://img.shields.io/badge/Language-C99-blue?style=flat-square&logo=c" alt="Language C">
+  <img src="https://img.shields.io/badge/Memory-Valgrind-red?style=flat-square" alt="Valgrind">
+  <img src="https://img.shields.io/badge/Build-GCC-lightgrey?style=flat-square&logo=gnu-bash" alt="GCC">
+
+  <br><br>
+  <img src="img/flujo_del_programa2.png" alt="Gameplay Screenshot" width="80%" style="border-radius: 10px; box-shadow: 0px 4px 10px rgba(0,0,0,0.2);">
 </div>
 
-# TP 2
+---
 
-## Repositorio de Máximo Augusto Calderón Vasil - 111810 - mcalderonv@fi.uba.ar
+## 📋 Descripción
+Este proyecto implementa un juego de estrategia en terminal donde el jugador debe moverse por un tablero, interactuar con pokemones y gestionar recursos. El núcleo del proyecto demuestra el dominio de **Tipos de Datos Abstractos (TDAs)**, **gestión de memoria dinámica** y **parseo de archivos**.
 
-- Para compilar:
+Se implementaron estructuras propias como Árboles Binarios de Búsqueda (ABB), Hash, Listas Enlazadas y Pilas para gestionar la lógica del juego.
 
+---
+
+## ⚙️ Requerimientos y Compilación
+
+Para ejecutar este proyecto necesitas un entorno Linux con `gcc` y `valgrind` instalados.
+
+### 🔨 Compilación
+Ejecuta los siguientes comandos en tu terminal para generar el ejecutable:
 
 ```bash
+# Compilar el motor gráfico (Engine)
 gcc -Wall -Werror -O2 -g -c extra/engine.c -o engine.o
+
+# Compilar el juego completo
 gcc -std=c99 -Wall -Wconversion -Wtype-limits -pedantic -Werror -O2 -g src/*.c tp2.c engine.o -o tp2
 ```
+
+### 🚀 Ejecución
 
 - Para ejecutar:
 
@@ -21,11 +49,25 @@ gcc -std=c99 -Wall -Wconversion -Wtype-limits -pedantic -Werror -O2 -g src/*.c t
 ```
 
 - Para ejecutar con valgrind:
+
 ```bash
 valgrind --leak-check=full --track-origins=yes --show-reachable=yes --error-exitcode=2 --show-leak-kinds=all --trace-children=yes ./tp2 datos/pokedex.csv
 ```
 
 ---
+
+## 🎮 Controles
+
+| Tecla | Acción |
+| :---: | :--- |
+| P | Mostrar Pokédex (Orden alfabético) |
+| J | Iniciar Juego |
+| S | Iniciar Juego con semilla personalizada |
+| Q | Salir |
+| <kbd>⬆</kbd> <kbd>⬇</kbd> <kbd>⬅</kbd> <kbd>➡</kbd> | Mover al Jugador en el tablero |
+
+---
+
 ## Flujo del programa
 <div align="center">
 <img width="70%" src="img/flujo_del_programa1.png">
@@ -168,3 +210,11 @@ y jugador_t:
     } jugador_t;
     ```
 Además, de forma privada se administran los structs pokemon_juego_t, que le agrega iteraciones y coordenadas x e y a los pokemones parseados de la pokedex; elemento_t, que es reutilizado para pokemones como para el jugador y ayuda a imprimir en la matriz auxiliar; y ctx_t, que sirve para pasarle un contexto a la función que agrega los pokemones del abb a la lista.
+
+## 👥 Autor
+
+| Integrante | Padrón | Contacto |
+| :--- | :---: | :---: |
+| **Calderón Vasil, Máximo Augusto** | 111810 | [![GitHub](https://img.shields.io/badge/GitHub-black?style=flat-square&logo=github)](https://github.com/maxivasil) [![Email](https://img.shields.io/badge/Email-red?style=flat-square&logo=gmail&logoColor=white)](mailto:mcalderonv@fi.uba.ar) |
+
+<div align="center"> <p>Facultad de Ingeniería de la Universidad de Buenos Aires (FIUBA)</p> </div>
